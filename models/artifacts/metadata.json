@@ -1,0 +1,23 @@
+{
+  "delta_features": [
+    "college_id",
+    "program_id",
+    "quota",
+    "category",
+    "nirf_rank",
+    "round",
+    "years_since_first_seen",
+    "trend_term",
+    "lag_closing_rank"
+  ],
+  "fallback_features": [
+    "college_id",
+    "program_id",
+    "quota",
+    "category",
+    "nirf_rank",
+    "round",
+    "years_since_first_seen"
+  ],
+  "alpha": 0.1
+}

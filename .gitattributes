@@ -1,0 +1,4 @@
+*.db binary
+*.joblib binary
+*.faiss binary
+models/artifacts/*.txt -text

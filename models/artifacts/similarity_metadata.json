@@ -1,0 +1,1474 @@
+{
+  "embedding_model": "all-MiniLM-L6-v2",
+  "category_weight": 0.65,
+  "branch_weight": 0.35,
+  "college_ids": [
+    "assam-university-silchar",
+    "atal-bihari-vajpayee-indian-institute-of-information-technology-management-gwalior",
+    "birla-institute-of-technology-deoghar-off-campus",
+    "birla-institute-of-technology-mesra-ranchi",
+    "birla-institute-of-technology-patna-off-campus",
+    "cu-jharkhand",
+    "central-university-of-haryana",
+    "central-university-of-jammu",
+    "central-university-of-rajasthan-rajasthan",
+    "central-institute-of-technology-kokrajar-assam",
+    "chhattisgarh-swami-vivekanada-technical-university-bhilai-csvtu-bhilai",
+    "dr-b-r-ambedkar-national-institute-of-technology-jalandhar",
+    "gati-shakti-vishwavidyalaya-vadodara",
+    "ghani-khan-choudhary-institute-of-engineering-and-technology-malda-west-bengal",
+    "gurukula-kangri-vishwavidyalaya-haridwar",
+    "hnb-garhwal-university-srinagar-garhwal",
+    "indian-institute-of-information-technology-senapati-manipur",
+    "indian-institute-of-carpet-technology-bhadohi",
+    "indian-institute-of-crop-processing-technology-thanjavur-tamilnadu",
+    "indian-institute-of-engineering-science-and-technology-shibpur",
+    "indian-institute-of-handloom-technology-iiht-varanasi",
+    "indian-institute-of-handloom-technology-salem",
+    "indian-institute-of-information-technology-iiit-nagpur",
+    "indian-institute-of-information-technology-iiit-pune",
+    "indian-institute-of-information-technology-iiit-ranchi",
+    "indian-institute-of-information-technology-iiit-sri-city-chittoor",
+    "indian-institute-of-information-technology-iiit-kota-rajasthan",
+    "indian-institute-of-information-technology-bhagalpur",
+    "indian-institute-of-information-technology-bhopal",
+    "indian-institute-of-information-technology-design-manufacturing-kurnool-andhra-pradesh",
+    "indian-institute-of-information-technology-guwahati",
+    "indian-institute-of-information-technology-lucknow",
+    "indian-institute-of-information-technology-manipur",
+    "indian-institute-of-information-technology-srirangam-tiruchirappalli",
+    "indian-institute-of-information-technology-surat",
+    "indian-institute-of-information-technology-tiruchirappalli",
+    "indian-institute-of-information-technology-iiit-dharwad",
+    "indian-institute-of-information-technology-iiit-kalyani-west-bengal",
+    "indian-institute-of-information-technology-iiit-kilohrad-sonepat-haryana",
+    "indian-institute-of-information-technology-iiit-kottayam",
+    "indian-institute-of-information-technology-iiit-una-himachal-pradesh",
+    "indian-institute-of-information-technology-iiit-sri-city-chittoor-district-andhra-pradesh",
+    "indian-institute-of-information-technology-iiit-sri-city-chittoor-district-andra-pradesh",
+    "indian-institute-of-information-technology-iiit-vadodara-gujrat",
+    "indian-institute-of-information-technology-agartala",
+    "indian-institute-of-information-technology-allahabad",
+    "indian-institute-of-information-technology-design-manufacturing-kancheepuram",
+    "indian-institute-of-information-technology-vadodara-international-campus-diu-iiitvicd",
+    "indian-institute-of-technology-bhu-varanasi",
+    "indian-institute-of-technology-ism-dhanbad",
+    "indian-institute-of-technology-bhilai",
+    "indian-institute-of-technology-bhubaneswar",
+    "indian-institute-of-technology-bombay",
+    "indian-institute-of-technology-delhi",
+    "indian-institute-of-technology-dharwad",
+    "indian-institute-of-technology-gandhinagar",
+    "indian-institute-of-technology-goa",
+    "indian-institute-of-technology-guwahati",
+    "indian-institute-of-technology-hyderabad",
+    "indian-institute-of-technology-indore",
+    "indian-institute-of-technology-jammu",
+    "indian-institute-of-technology-jodhpur",
+    "indian-institute-of-technology-kanpur",
+    "indian-institute-of-technology-kharagpur",
+    "indian-institute-of-technology-madras",
+    "indian-institute-of-technology-mandi",
+    "indian-institute-of-technology-palakkad",
+    "indian-institute-of-technology-patna",
+    "indian-institute-of-technology-roorkee",
+    "indian-institute-of-technology-ropar",
+    "indian-institute-of-technology-tirupati",
+    "indian-school-of-mines-dhanbad",
+    "indian-institute-of-information-technology-raichur-karnataka",
+    "institute-of-chemical-technology-mumbai-indian-oil-odisha-campus-bhubaneswar",
+    "institute-of-engineering-and-technology-dr-h-s-gour-university-sagar-a-central-university",
+    "institute-of-infrastructure-technology-research-and-management-ahmedabad",
+    "institute-of-technology-guru-ghasidas-vishwavidyalaya-a-central-university-bilaspur-c-g",
+    "international-institute-of-information-technology-bhubaneswar",
+    "international-institute-of-information-technology-naya-raipur",
+    "j-k-institute-of-applied-physics-technology-department-of-electronics-communication-university-of-allahabad-allahabad",
+    "jawaharlal-nehru-university-delhi",
+    "malaviya-national-institute-of-technology-jaipur",
+    "maulana-azad-national-institute-of-technology-bhopal",
+    "mizoram-university-aizawl",
+    "motilal-nehru-national-institute-of-technology-allahabad",
+    "national-institute-of-advanced-manufacturing-technology-ranchi",
+    "national-institute-of-electronics-and-information-technology-aurangabad-maharashtra",
+    "national-institute-of-food-technology-entrepreneurship-and-management-kundli",
+    "national-institute-of-food-technology-entrepreneurship-and-management-sonepat-haryana",
+    "national-institute-of-food-technology-entrepreneurship-and-management-thanjavur",
+    "national-institute-of-foundry-forge-technology-hatia-ranchi",
+    "national-institute-of-technology-agartala",
+    "national-institute-of-technology-arunachal-pradesh",
+    "national-institute-of-technology-calicut",
+    "national-institute-of-technology-delhi",
+    "national-institute-of-technology-durgapur",
+    "national-institute-of-technology-goa",
+    "national-institute-of-technology-hamirpur",
+    "national-institute-of-technology-karnataka-surathkal",
+    "national-institute-of-technology-meghalaya",
+    "national-institute-of-technology-nagaland",
+    "national-institute-of-technology-patna",
+    "national-institute-of-technology-puducherry",
+    "national-institute-of-technology-raipur",
+    "national-institute-of-technology-sikkim",
+    "national-institute-of-technology-andhra-pradesh",
+    "national-institute-of-technology-jamshedpur",
+    "national-institute-of-technology-kurukshetra",
+    "national-institute-of-technology-manipur",
+    "national-institute-of-technology-mizoram",
+    "national-institute-of-technology-rourkela",
+    "national-institute-of-technology-silchar",
+    "national-institute-of-technology-srinagar",
+    "national-institute-of-technology-tiruchirappalli",
+    "national-institute-of-technology-uttarakhand",
+    "national-institute-of-technology-warangal",
+    "north-eastern-regional-institute-of-science-and-technology-nirjuli-791109-itanagar-arunachal-pradesh",
+    "north-eastern-hill-university-shillong",
+    "pondicherry-engineering-college-puducherry",
+    "pt-dwarka-prasad-mishra-indian-institute-of-information-technology-design-manufacture-jabalpur",
+    "puducherry-technological-university-puducherry",
+    "punjab-engineering-college-chandigarh",
+    "sant-longowal-institute-of-engineering-and-technology",
+    "sardar-vallabhbhai-national-institute-of-technology-surat",
+    "school-of-engineering-tezpur-university-napaam-tezpur",
+    "school-of-planning-architecture-bhopal",
+    "school-of-planning-architecture-new-delhi",
+    "school-of-planning-architecture-vijayawada",
+    "school-of-studies-of-engineering-and-technology-guru-ghasidas-vishwavidyalaya-bilaspur",
+    "shri-mata-vaishno-devi-university-katra-jammu-kashmir",
+    "university-of-hyderabad",
+    "visvesvaraya-national-institute-of-technology-nagpur",
+    "lndian-institute-of-food-processing-technology-thanjavur-tamil-naidu"
+  ],
+  "colleges": {
+    "assam-university-silchar": {
+      "college_name": "Assam University, Silchar",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "atal-bihari-vajpayee-indian-institute-of-information-technology-management-gwalior": {
+      "college_name": "Atal Bihari Vajpayee Indian Institute of Information Technology & Management Gwalior",
+      "institute_type": "IIIT",
+      "state": "Madhya Pradesh",
+      "nirf_rank": 96
+    },
+    "birla-institute-of-technology-deoghar-off-campus": {
+      "college_name": "Birla Institute of Technology, Deoghar Off-Campus",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "birla-institute-of-technology-mesra-ranchi": {
+      "college_name": "Birla Institute of Technology, Mesra, Ranchi",
+      "institute_type": "GFTI",
+      "state": "Jharkhand",
+      "nirf_rank": 51
+    },
+    "birla-institute-of-technology-patna-off-campus": {
+      "college_name": "Birla Institute of Technology, Patna Off-Campus",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "cu-jharkhand": {
+      "college_name": "CU Jharkhand",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "central-university-of-haryana": {
+      "college_name": "Central University of Haryana",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "central-university-of-jammu": {
+      "college_name": "Central University of Jammu",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "central-university-of-rajasthan-rajasthan": {
+      "college_name": "Central University of Rajasthan, Rajasthan",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "central-institute-of-technology-kokrajar-assam": {
+      "college_name": "Central institute of Technology Kokrajar, Assam",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "chhattisgarh-swami-vivekanada-technical-university-bhilai-csvtu-bhilai": {
+      "college_name": "Chhattisgarh Swami Vivekanada Technical University, Bhilai (CSVTU Bhilai)",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "dr-b-r-ambedkar-national-institute-of-technology-jalandhar": {
+      "college_name": "Dr. B R Ambedkar National Institute of Technology, Jalandhar",
+      "institute_type": "NIT",
+      "state": "Punjab",
+      "nirf_rank": 55
+    },
+    "gati-shakti-vishwavidyalaya-vadodara": {
+      "college_name": "Gati Shakti Vishwavidyalaya, Vadodara",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "ghani-khan-choudhary-institute-of-engineering-and-technology-malda-west-bengal": {
+      "college_name": "Ghani Khan Choudhary Institute of Engineering and Technology, Malda, West Bengal",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "gurukula-kangri-vishwavidyalaya-haridwar": {
+      "college_name": "Gurukula Kangri Vishwavidyalaya, Haridwar",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "hnb-garhwal-university-srinagar-garhwal": {
+      "college_name": "HNB Garhwal University Srinagar (Garhwal)",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-senapati-manipur": {
+      "college_name": "INDIAN INSTITUTE OF INFORMATION TECHNOLOGY SENAPATI MANIPUR",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-carpet-technology-bhadohi": {
+      "college_name": "Indian Institute of Carpet Technology, Bhadohi",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-crop-processing-technology-thanjavur-tamilnadu": {
+      "college_name": "Indian Institute of Crop Processing Technology, Thanjavur, Tamilnadu",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-engineering-science-and-technology-shibpur": {
+      "college_name": "Indian Institute of Engineering Science and Technology, Shibpur",
+      "institute_type": "GFTI",
+      "state": "West Bengal",
+      "nirf_rank": 54
+    },
+    "indian-institute-of-handloom-technology-iiht-varanasi": {
+      "college_name": "Indian Institute of Handloom Technology(IIHT), Varanasi",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-handloom-technology-salem": {
+      "college_name": "Indian Institute of Handloom Technology, Salem",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-nagpur": {
+      "college_name": "Indian Institute of Information Technology (IIIT) Nagpur",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-pune": {
+      "college_name": "Indian Institute of Information Technology (IIIT) Pune",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-ranchi": {
+      "college_name": "Indian Institute of Information Technology (IIIT) Ranchi",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-sri-city-chittoor": {
+      "college_name": "Indian Institute of Information Technology (IIIT), Sri City, Chittoor",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-kota-rajasthan": {
+      "college_name": "Indian Institute of Information Technology (IIIT)Kota, Rajasthan",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-bhagalpur": {
+      "college_name": "Indian Institute of Information Technology Bhagalpur",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-bhopal": {
+      "college_name": "Indian Institute of Information Technology Bhopal",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-design-manufacturing-kurnool-andhra-pradesh": {
+      "college_name": "Indian Institute of Information Technology Design & Manufacturing Kurnool, Andhra Pradesh",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-guwahati": {
+      "college_name": "Indian Institute of Information Technology Guwahati",
+      "institute_type": "IIIT",
+      "state": "Assam",
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-lucknow": {
+      "college_name": "Indian Institute of Information Technology Lucknow",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-manipur": {
+      "college_name": "Indian Institute of Information Technology Manipur",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-srirangam-tiruchirappalli": {
+      "college_name": "Indian Institute of Information Technology Srirangam, Tiruchirappalli",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-surat": {
+      "college_name": "Indian Institute of Information Technology Surat",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-tiruchirappalli": {
+      "college_name": "Indian Institute of Information Technology Tiruchirappalli",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-dharwad": {
+      "college_name": "Indian Institute of Information Technology(IIIT) Dharwad",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-kalyani-west-bengal": {
+      "college_name": "Indian Institute of Information Technology(IIIT) Kalyani, West Bengal",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-kilohrad-sonepat-haryana": {
+      "college_name": "Indian Institute of Information Technology(IIIT) Kilohrad, Sonepat, Haryana",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-kottayam": {
+      "college_name": "Indian Institute of Information Technology(IIIT) Kottayam",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-una-himachal-pradesh": {
+      "college_name": "Indian Institute of Information Technology(IIIT) Una, Himachal Pradesh",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-sri-city-chittoor-district-andhra-pradesh": {
+      "college_name": "Indian Institute of Information Technology(IIIT), Sri City, Chittoor District, Andhra Pradesh",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-sri-city-chittoor-district-andra-pradesh": {
+      "college_name": "Indian Institute of Information Technology(IIIT), Sri City, Chittoor District, Andra Pradesh",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-iiit-vadodara-gujrat": {
+      "college_name": "Indian Institute of Information Technology(IIIT), Vadodara, Gujrat",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-agartala": {
+      "college_name": "Indian Institute of Information Technology, Agartala",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-allahabad": {
+      "college_name": "Indian Institute of Information Technology, Allahabad",
+      "institute_type": "IIIT",
+      "state": "Uttar Pradesh",
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-design-manufacturing-kancheepuram": {
+      "college_name": "Indian Institute of Information Technology, Design & Manufacturing, Kancheepuram",
+      "institute_type": "IIIT",
+      "state": "Tamil Nadu",
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-vadodara-international-campus-diu-iiitvicd": {
+      "college_name": "Indian Institute of Information Technology, Vadodara International Campus Diu (IIITVICD)",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-technology-bhu-varanasi": {
+      "college_name": "Indian Institute of Technology (BHU) Varanasi",
+      "institute_type": "IIT",
+      "state": "Uttar Pradesh",
+      "nirf_rank": 11
+    },
+    "indian-institute-of-technology-ism-dhanbad": {
+      "college_name": "Indian Institute of Technology (ISM) Dhanbad",
+      "institute_type": "IIT",
+      "state": "Jharkhand",
+      "nirf_rank": 15
+    },
+    "indian-institute-of-technology-bhilai": {
+      "college_name": "Indian Institute of Technology Bhilai",
+      "institute_type": "IIT",
+      "state": "Chhattisgarh",
+      "nirf_rank": 72
+    },
+    "indian-institute-of-technology-bhubaneswar": {
+      "college_name": "Indian Institute of Technology Bhubaneswar",
+      "institute_type": "IIT",
+      "state": "Odisha",
+      "nirf_rank": 39
+    },
+    "indian-institute-of-technology-bombay": {
+      "college_name": "Indian Institute of Technology Bombay",
+      "institute_type": "IIT",
+      "state": "Maharashtra",
+      "nirf_rank": 3
+    },
+    "indian-institute-of-technology-delhi": {
+      "college_name": "Indian Institute of Technology Delhi",
+      "institute_type": "IIT",
+      "state": "Delhi",
+      "nirf_rank": 2
+    },
+    "indian-institute-of-technology-dharwad": {
+      "college_name": "Indian Institute of Technology Dharwad",
+      "institute_type": "IIT",
+      "state": "Karnataka",
+      "nirf_rank": 77
+    },
+    "indian-institute-of-technology-gandhinagar": {
+      "college_name": "Indian Institute of Technology Gandhinagar",
+      "institute_type": "IIT",
+      "state": "Gujarat",
+      "nirf_rank": 25
+    },
+    "indian-institute-of-technology-goa": {
+      "college_name": "Indian Institute of Technology Goa",
+      "institute_type": "IIT",
+      "state": "Goa",
+      "nirf_rank": null
+    },
+    "indian-institute-of-technology-guwahati": {
+      "college_name": "Indian Institute of Technology Guwahati",
+      "institute_type": "IIT",
+      "state": "Assam",
+      "nirf_rank": 8
+    },
+    "indian-institute-of-technology-hyderabad": {
+      "college_name": "Indian Institute of Technology Hyderabad",
+      "institute_type": "IIT",
+      "state": "Telangana",
+      "nirf_rank": 7
+    },
+    "indian-institute-of-technology-indore": {
+      "college_name": "Indian Institute of Technology Indore",
+      "institute_type": "IIT",
+      "state": "Madhya Pradesh",
+      "nirf_rank": 12
+    },
+    "indian-institute-of-technology-jammu": {
+      "college_name": "Indian Institute of Technology Jammu",
+      "institute_type": "IIT",
+      "state": "Jammu and Kashmir",
+      "nirf_rank": 56
+    },
+    "indian-institute-of-technology-jodhpur": {
+      "college_name": "Indian Institute of Technology Jodhpur",
+      "institute_type": "IIT",
+      "state": "Rajasthan",
+      "nirf_rank": 27
+    },
+    "indian-institute-of-technology-kanpur": {
+      "college_name": "Indian Institute of Technology Kanpur",
+      "institute_type": "IIT",
+      "state": "Uttar Pradesh",
+      "nirf_rank": 4
+    },
+    "indian-institute-of-technology-kharagpur": {
+      "college_name": "Indian Institute of Technology Kharagpur",
+      "institute_type": "IIT",
+      "state": "West Bengal",
+      "nirf_rank": 5
+    },
+    "indian-institute-of-technology-madras": {
+      "college_name": "Indian Institute of Technology Madras",
+      "institute_type": "IIT",
+      "state": "Tamil Nadu",
+      "nirf_rank": 1
+    },
+    "indian-institute-of-technology-mandi": {
+      "college_name": "Indian Institute of Technology Mandi",
+      "institute_type": "IIT",
+      "state": "Himachal Pradesh",
+      "nirf_rank": 26
+    },
+    "indian-institute-of-technology-palakkad": {
+      "college_name": "Indian Institute of Technology Palakkad",
+      "institute_type": "IIT",
+      "state": "Kerala",
+      "nirf_rank": 64
+    },
+    "indian-institute-of-technology-patna": {
+      "college_name": "Indian Institute of Technology Patna",
+      "institute_type": "IIT",
+      "state": "Bihar",
+      "nirf_rank": 19
+    },
+    "indian-institute-of-technology-roorkee": {
+      "college_name": "Indian Institute of Technology Roorkee",
+      "institute_type": "IIT",
+      "state": "Uttarakhand",
+      "nirf_rank": 6
+    },
+    "indian-institute-of-technology-ropar": {
+      "college_name": "Indian Institute of Technology Ropar",
+      "institute_type": "IIT",
+      "state": "Punjab",
+      "nirf_rank": 32
+    },
+    "indian-institute-of-technology-tirupati": {
+      "college_name": "Indian Institute of Technology Tirupati",
+      "institute_type": "IIT",
+      "state": "Andhra Pradesh",
+      "nirf_rank": 57
+    },
+    "indian-school-of-mines-dhanbad": {
+      "college_name": "Indian School of Mines Dhanbad",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "indian-institute-of-information-technology-raichur-karnataka": {
+      "college_name": "Indian institute of information technology, Raichur, Karnataka",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "institute-of-chemical-technology-mumbai-indian-oil-odisha-campus-bhubaneswar": {
+      "college_name": "Institute of Chemical Technology, Mumbai: Indian Oil Odisha Campus, Bhubaneswar",
+      "institute_type": "GFTI",
+      "state": "Maharashtra",
+      "nirf_rank": 41
+    },
+    "institute-of-engineering-and-technology-dr-h-s-gour-university-sagar-a-central-university": {
+      "college_name": "Institute of Engineering and Technology, Dr. H. S. Gour University. Sagar (A Central University)",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "institute-of-infrastructure-technology-research-and-management-ahmedabad": {
+      "college_name": "Institute of Infrastructure, Technology, Research and Management-Ahmedabad",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "institute-of-technology-guru-ghasidas-vishwavidyalaya-a-central-university-bilaspur-c-g": {
+      "college_name": "Institute of Technology, Guru Ghasidas Vishwavidyalaya (A Central University), Bilaspur, (C.G.)",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "international-institute-of-information-technology-bhubaneswar": {
+      "college_name": "International Institute of Information Technology, Bhubaneswar",
+      "institute_type": "GFTI",
+      "state": "Odisha",
+      "nirf_rank": null
+    },
+    "international-institute-of-information-technology-naya-raipur": {
+      "college_name": "International Institute of Information Technology, Naya Raipur",
+      "institute_type": "GFTI",
+      "state": "Chhattisgarh",
+      "nirf_rank": null
+    },
+    "j-k-institute-of-applied-physics-technology-department-of-electronics-communication-university-of-allahabad-allahabad": {
+      "college_name": "J.K. Institute of Applied Physics & Technology, Department of Electronics & Communication, University of Allahabad- Allahabad",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "jawaharlal-nehru-university-delhi": {
+      "college_name": "Jawaharlal Nehru University, Delhi",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "malaviya-national-institute-of-technology-jaipur": {
+      "college_name": "Malaviya National Institute of Technology Jaipur",
+      "institute_type": "NIT",
+      "state": "Rajasthan",
+      "nirf_rank": 42
+    },
+    "maulana-azad-national-institute-of-technology-bhopal": {
+      "college_name": "Maulana Azad National Institute of Technology Bhopal",
+      "institute_type": "NIT",
+      "state": "Madhya Pradesh",
+      "nirf_rank": 81
+    },
+    "mizoram-university-aizawl": {
+      "college_name": "Mizoram University, Aizawl",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "motilal-nehru-national-institute-of-technology-allahabad": {
+      "college_name": "Motilal Nehru National Institute of Technology Allahabad",
+      "institute_type": "NIT",
+      "state": "Uttar Pradesh",
+      "nirf_rank": 48
+    },
+    "national-institute-of-advanced-manufacturing-technology-ranchi": {
+      "college_name": "National Institute of Advanced Manufacturing Technology, Ranchi",
+      "institute_type": "GFTI",
+      "state": "Jharkhand",
+      "nirf_rank": null
+    },
+    "national-institute-of-electronics-and-information-technology-aurangabad-maharashtra": {
+      "college_name": "National Institute of Electronics and Information Technology, Aurangabad (Maharashtra)",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "national-institute-of-food-technology-entrepreneurship-and-management-kundli": {
+      "college_name": "National Institute of Food Technology Entrepreneurship and Management, Kundli",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "national-institute-of-food-technology-entrepreneurship-and-management-sonepat-haryana": {
+      "college_name": "National Institute of Food Technology Entrepreneurship and Management, Sonepat, Haryana",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "national-institute-of-food-technology-entrepreneurship-and-management-thanjavur": {
+      "college_name": "National Institute of Food Technology Entrepreneurship and Management, Thanjavur",
+      "institute_type": "GFTI",
+      "state": "Tamil Nadu",
+      "nirf_rank": null
+    },
+    "national-institute-of-foundry-forge-technology-hatia-ranchi": {
+      "college_name": "National Institute of Foundry & Forge Technology, Hatia, Ranchi",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-agartala": {
+      "college_name": "National Institute of Technology Agartala",
+      "institute_type": "NIT",
+      "state": "Tripura",
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-arunachal-pradesh": {
+      "college_name": "National Institute of Technology Arunachal Pradesh",
+      "institute_type": "NIT",
+      "state": "Arunachal Pradesh",
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-calicut": {
+      "college_name": "National Institute of Technology Calicut",
+      "institute_type": "NIT",
+      "state": "Kerala",
+      "nirf_rank": 21
+    },
+    "national-institute-of-technology-delhi": {
+      "college_name": "National Institute of Technology Delhi",
+      "institute_type": "NIT",
+      "state": "Delhi",
+      "nirf_rank": 65
+    },
+    "national-institute-of-technology-durgapur": {
+      "college_name": "National Institute of Technology Durgapur",
+      "institute_type": "NIT",
+      "state": "West Bengal",
+      "nirf_rank": 49
+    },
+    "national-institute-of-technology-goa": {
+      "college_name": "National Institute of Technology Goa",
+      "institute_type": "NIT",
+      "state": "Goa",
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-hamirpur": {
+      "college_name": "National Institute of Technology Hamirpur",
+      "institute_type": "NIT",
+      "state": "Himachal Pradesh",
+      "nirf_rank": 97
+    },
+    "national-institute-of-technology-karnataka-surathkal": {
+      "college_name": "National Institute of Technology Karnataka, Surathkal",
+      "institute_type": "NIT",
+      "state": "Karnataka",
+      "nirf_rank": 17
+    },
+    "national-institute-of-technology-meghalaya": {
+      "college_name": "National Institute of Technology Meghalaya",
+      "institute_type": "NIT",
+      "state": "Meghalaya",
+      "nirf_rank": 83
+    },
+    "national-institute-of-technology-nagaland": {
+      "college_name": "National Institute of Technology Nagaland",
+      "institute_type": "NIT",
+      "state": "Nagaland",
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-patna": {
+      "college_name": "National Institute of Technology Patna",
+      "institute_type": "NIT",
+      "state": "Bihar",
+      "nirf_rank": 53
+    },
+    "national-institute-of-technology-puducherry": {
+      "college_name": "National Institute of Technology Puducherry",
+      "institute_type": "NIT",
+      "state": "Pondicherry",
+      "nirf_rank": 99
+    },
+    "national-institute-of-technology-raipur": {
+      "college_name": "National Institute of Technology Raipur",
+      "institute_type": "NIT",
+      "state": "Chhattisgarh",
+      "nirf_rank": 86
+    },
+    "national-institute-of-technology-sikkim": {
+      "college_name": "National Institute of Technology Sikkim",
+      "institute_type": "NIT",
+      "state": "Sikkim",
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-andhra-pradesh": {
+      "college_name": "National Institute of Technology, Andhra Pradesh",
+      "institute_type": "NIT",
+      "state": "Andhra Pradesh",
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-jamshedpur": {
+      "college_name": "National Institute of Technology, Jamshedpur",
+      "institute_type": "NIT",
+      "state": "Jharkhand",
+      "nirf_rank": 82
+    },
+    "national-institute-of-technology-kurukshetra": {
+      "college_name": "National Institute of Technology, Kurukshetra",
+      "institute_type": "NIT",
+      "state": "Haryana",
+      "nirf_rank": 85
+    },
+    "national-institute-of-technology-manipur": {
+      "college_name": "National Institute of Technology, Manipur",
+      "institute_type": "NIT",
+      "state": "Manipur",
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-mizoram": {
+      "college_name": "National Institute of Technology, Mizoram",
+      "institute_type": "NIT",
+      "state": "Mizoram",
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-rourkela": {
+      "college_name": "National Institute of Technology, Rourkela",
+      "institute_type": "NIT",
+      "state": "Odisha",
+      "nirf_rank": 13
+    },
+    "national-institute-of-technology-silchar": {
+      "college_name": "National Institute of Technology, Silchar",
+      "institute_type": "NIT",
+      "state": "Assam",
+      "nirf_rank": 50
+    },
+    "national-institute-of-technology-srinagar": {
+      "college_name": "National Institute of Technology, Srinagar",
+      "institute_type": "NIT",
+      "state": "Jammu and Kashmir",
+      "nirf_rank": 73
+    },
+    "national-institute-of-technology-tiruchirappalli": {
+      "college_name": "National Institute of Technology, Tiruchirappalli",
+      "institute_type": "NIT",
+      "state": "Tamil Nadu",
+      "nirf_rank": 9
+    },
+    "national-institute-of-technology-uttarakhand": {
+      "college_name": "National Institute of Technology, Uttarakhand",
+      "institute_type": "NIT",
+      "state": "Uttarakhand",
+      "nirf_rank": null
+    },
+    "national-institute-of-technology-warangal": {
+      "college_name": "National Institute of Technology, Warangal",
+      "institute_type": "NIT",
+      "state": "Telangana",
+      "nirf_rank": 28
+    },
+    "north-eastern-regional-institute-of-science-and-technology-nirjuli-791109-itanagar-arunachal-pradesh": {
+      "college_name": "North Eastern Regional Institute of Science and Technology, Nirjuli-791109 (Itanagar),Arunachal Pradesh",
+      "institute_type": "GFTI",
+      "state": "Arunachal Pradesh",
+      "nirf_rank": null
+    },
+    "north-eastern-hill-university-shillong": {
+      "college_name": "North-Eastern Hill University, Shillong",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "pondicherry-engineering-college-puducherry": {
+      "college_name": "Pondicherry Engineering College, Puducherry",
+      "institute_type": "GFTI",
+      "state": "Pondicherry",
+      "nirf_rank": null
+    },
+    "pt-dwarka-prasad-mishra-indian-institute-of-information-technology-design-manufacture-jabalpur": {
+      "college_name": "Pt. Dwarka Prasad Mishra Indian Institute of Information Technology, Design & Manufacture Jabalpur",
+      "institute_type": "IIIT",
+      "state": null,
+      "nirf_rank": null
+    },
+    "puducherry-technological-university-puducherry": {
+      "college_name": "Puducherry Technological University, Puducherry",
+      "institute_type": "GFTI",
+      "state": "Pondicherry",
+      "nirf_rank": null
+    },
+    "punjab-engineering-college-chandigarh": {
+      "college_name": "Punjab Engineering College, Chandigarh",
+      "institute_type": "GFTI",
+      "state": "Chandigarh",
+      "nirf_rank": 85
+    },
+    "sant-longowal-institute-of-engineering-and-technology": {
+      "college_name": "Sant Longowal Institute of Engineering and Technology",
+      "institute_type": "GFTI",
+      "state": "Punjab",
+      "nirf_rank": 79
+    },
+    "sardar-vallabhbhai-national-institute-of-technology-surat": {
+      "college_name": "Sardar Vallabhbhai National Institute of Technology, Surat",
+      "institute_type": "NIT",
+      "state": "Gujarat",
+      "nirf_rank": 66
+    },
+    "school-of-engineering-tezpur-university-napaam-tezpur": {
+      "college_name": "School of Engineering, Tezpur University, Napaam, Tezpur",
+      "institute_type": "GFTI",
+      "state": "Assam",
+      "nirf_rank": null
+    },
+    "school-of-planning-architecture-bhopal": {
+      "college_name": "School of Planning & Architecture, Bhopal",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "school-of-planning-architecture-new-delhi": {
+      "college_name": "School of Planning & Architecture, New Delhi",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "school-of-planning-architecture-vijayawada": {
+      "college_name": "School of Planning & Architecture: Vijayawada",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "school-of-studies-of-engineering-and-technology-guru-ghasidas-vishwavidyalaya-bilaspur": {
+      "college_name": "School of Studies of Engineering and Technology, Guru Ghasidas Vishwavidyalaya, Bilaspur",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    },
+    "shri-mata-vaishno-devi-university-katra-jammu-kashmir": {
+      "college_name": "Shri Mata Vaishno Devi University, Katra, Jammu & Kashmir",
+      "institute_type": "GFTI",
+      "state": "Jammu and Kashmir",
+      "nirf_rank": null
+    },
+    "university-of-hyderabad": {
+      "college_name": "University of Hyderabad",
+      "institute_type": "GFTI",
+      "state": "Telangana",
+      "nirf_rank": 74
+    },
+    "visvesvaraya-national-institute-of-technology-nagpur": {
+      "college_name": "Visvesvaraya National Institute of Technology, Nagpur",
+      "institute_type": "NIT",
+      "state": "Maharashtra",
+      "nirf_rank": 44
+    },
+    "lndian-institute-of-food-processing-technology-thanjavur-tamil-naidu": {
+      "college_name": "lndian Institute of Food Processing Technology, Thanjavur, Tamil Naidu.",
+      "institute_type": "GFTI",
+      "state": null,
+      "nirf_rank": null
+    }
+  },
+  "profiles": {
+    "assam-university-silchar": {
+      "category": "Assam University, Silchar. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Agricultural Engineering, Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "atal-bihari-vajpayee-indian-institute-of-information-technology-management-gwalior": {
+      "category": "Atal Bihari Vajpayee Indian Institute of Information Technology & Management Gwalior. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in Madhya Pradesh. NIRF rank 96",
+      "branches": "offers Computer Science and Engineering, Electrical and Electronics Engineering, Integrated B. Tech, Mathematics and Scientific Computing"
+    },
+    "birla-institute-of-technology-deoghar-off-campus": {
+      "category": "Birla Institute of Technology, Deoghar Off-Campus. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "birla-institute-of-technology-mesra-ranchi": {
+      "category": "Birla Institute of Technology, Mesra, Ranchi. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Jharkhand. NIRF rank 51",
+      "branches": "offers Architecture, Artificial Intelligence and Machine Learning, Bio Technology, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Food Engineering and Technology, Mathematics and Computing, Mechanical Engineering, Physics, Production and Industrial Engineering, Quantitative Economics & Data Science"
+    },
+    "birla-institute-of-technology-patna-off-campus": {
+      "category": "Birla Institute of Technology, Patna Off-Campus. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Artificial Intelligence and Machine Learning, Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "cu-jharkhand": {
+      "category": "CU Jharkhand. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Integrated B. Tech. - M. Tech in Civil Engineering, Integrated B. Tech. - M. Tech in Computer Science & Engineering, Integrated B. Tech. - M. Tech in Electrical Engineering, Integrated B. Tech.- M. Tech in Metallurgical & Materials Engineering"
+    },
+    "central-university-of-haryana": {
+      "category": "Central University of Haryana. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical Engineering, Printing and Packaging Technology"
+    },
+    "central-university-of-jammu": {
+      "category": "Central University of Jammu. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "central-university-of-rajasthan-rajasthan": {
+      "category": "Central University of Rajasthan, Rajasthan. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Biomedical Engineering, Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "central-institute-of-technology-kokrajar-assam": {
+      "category": "Central institute of Technology Kokrajar, Assam. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electronics and Communication Engineering, Food Engineering and Technology, Instrumentation Engineering"
+    },
+    "chhattisgarh-swami-vivekanada-technical-university-bhilai-csvtu-bhilai": {
+      "category": "Chhattisgarh Swami Vivekanada Technical University, Bhilai (CSVTU Bhilai). GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Civil Engineering, Computer Science Engineering"
+    },
+    "dr-b-r-ambedkar-national-institute-of-technology-jalandhar": {
+      "category": "Dr. B R Ambedkar National Institute of Technology, Jalandhar. NIT (National Institute of Technology) institute. Government-run institute. located in Jalandhar, Punjab. NIRF rank 55. low fees",
+      "branches": "offers Bio Technology, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Data Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Electronics and VLSI Engineering, Industrial and Production Engineering, Information Technology, Instrumentation and Control Engineering, Mathematics and Computing, Mechanical Engineering, Textile Technology"
+    },
+    "gati-shakti-vishwavidyalaya-vadodara": {
+      "category": "Gati Shakti Vishwavidyalaya, Vadodara. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers B.Tech in Artificial Intelligenece and Data Science, B.Tech in Aviation Engineering, B.Tech in Civil Engineering, B.Tech in Electrical Engineering, B.Tech in Electronics & Communication Engineering, B.Tech in Mechanical Engineering"
+    },
+    "ghani-khan-choudhary-institute-of-engineering-and-technology-malda-west-bengal": {
+      "category": "Ghani Khan Choudhary Institute of Engineering and Technology, Malda, West Bengal. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Civil and Environmental Engineering, Computer Science Engineering, Electrical Engineering, Food Technology, Mechanical Engineering"
+    },
+    "gurukula-kangri-vishwavidyalaya-haridwar": {
+      "category": "Gurukula Kangri Vishwavidyalaya, Haridwar. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "hnb-garhwal-university-srinagar-garhwal": {
+      "category": "HNB Garhwal University Srinagar (Garhwal). GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": ""
+    },
+    "indian-institute-of-information-technology-senapati-manipur": {
+      "category": "INDIAN INSTITUTE OF INFORMATION TECHNOLOGY SENAPATI MANIPUR. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-carpet-technology-bhadohi": {
+      "category": "Indian Institute of Carpet Technology, Bhadohi. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Carpet and Textile Technology"
+    },
+    "indian-institute-of-crop-processing-technology-thanjavur-tamilnadu": {
+      "category": "Indian Institute of Crop Processing Technology, Thanjavur, Tamilnadu. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": ""
+    },
+    "indian-institute-of-engineering-science-and-technology-shibpur": {
+      "category": "Indian Institute of Engineering Science and Technology, Shibpur. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Howrah, West Bengal. NIRF rank 54. low fees",
+      "branches": "offers Aerospace Engineering, Architecture, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Telecommunication Engineering, Information Technology, Mechanical Engineering, Metallurgy and Materials Engineering, Mining Engineering"
+    },
+    "indian-institute-of-handloom-technology-iiht-varanasi": {
+      "category": "Indian Institute of Handloom Technology(IIHT), Varanasi. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Handloom and Textile Technology"
+    },
+    "indian-institute-of-handloom-technology-salem": {
+      "category": "Indian Institute of Handloom Technology, Salem. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Handloom and Textile Technology"
+    },
+    "indian-institute-of-information-technology-iiit-nagpur": {
+      "category": "Indian Institute of Information Technology (IIIT) Nagpur. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science Engineering, Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-iiit-pune": {
+      "category": "Indian Institute of Information Technology (IIIT) Pune. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-iiit-ranchi": {
+      "category": "Indian Institute of Information Technology (IIIT) Ranchi. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-iiit-sri-city-chittoor": {
+      "category": "Indian Institute of Information Technology (IIIT), Sri City, Chittoor. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Artificial Intelligence and Data Science, Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-iiit-kota-rajasthan": {
+      "category": "Indian Institute of Information Technology (IIIT)Kota, Rajasthan. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Artificial Intelligence and Data Engineering, Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-bhagalpur": {
+      "category": "Indian Institute of Information Technology Bhagalpur. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering, Mathematics and Computing, Mechatronics and Automation Engineering"
+    },
+    "indian-institute-of-information-technology-bhopal": {
+      "category": "Indian Institute of Information Technology Bhopal. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering, Information Technology"
+    },
+    "indian-institute-of-information-technology-design-manufacturing-kurnool-andhra-pradesh": {
+      "category": "Indian Institute of Information Technology Design & Manufacturing Kurnool, Andhra Pradesh. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Artificial Intelligence and Data Science, Computer Science and Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "indian-institute-of-information-technology-guwahati": {
+      "category": "Indian Institute of Information Technology Guwahati. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in Guwahati, Assam. moderate fees",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-lucknow": {
+      "category": "Indian Institute of Information Technology Lucknow. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science, Computer Science and Artificial Intelligence, Computer Science and Business, Information Technology"
+    },
+    "indian-institute-of-information-technology-manipur": {
+      "category": "Indian Institute of Information Technology Manipur. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": ""
+    },
+    "indian-institute-of-information-technology-srirangam-tiruchirappalli": {
+      "category": "Indian Institute of Information Technology Srirangam, Tiruchirappalli. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": ""
+    },
+    "indian-institute-of-information-technology-surat": {
+      "category": "Indian Institute of Information Technology Surat. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-tiruchirappalli": {
+      "category": "Indian Institute of Information Technology Tiruchirappalli. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-iiit-dharwad": {
+      "category": "Indian Institute of Information Technology(IIIT) Dharwad. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Data Science and Artificial Intelligence, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-iiit-kalyani-west-bengal": {
+      "category": "Indian Institute of Information Technology(IIIT) Kalyani, West Bengal. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-iiit-kilohrad-sonepat-haryana": {
+      "category": "Indian Institute of Information Technology(IIIT) Kilohrad, Sonepat, Haryana. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers CSE, Computer Science and Engineering, Information Technology"
+    },
+    "indian-institute-of-information-technology-iiit-kottayam": {
+      "category": "Indian Institute of Information Technology(IIIT) Kottayam. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "indian-institute-of-information-technology-iiit-una-himachal-pradesh": {
+      "category": "Indian Institute of Information Technology(IIIT) Una, Himachal Pradesh. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering, Information Technology"
+    },
+    "indian-institute-of-information-technology-iiit-sri-city-chittoor-district-andhra-pradesh": {
+      "category": "Indian Institute of Information Technology(IIIT), Sri City, Chittoor District, Andhra Pradesh. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": ""
+    },
+    "indian-institute-of-information-technology-iiit-sri-city-chittoor-district-andra-pradesh": {
+      "category": "Indian Institute of Information Technology(IIIT), Sri City, Chittoor District, Andra Pradesh. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": ""
+    },
+    "indian-institute-of-information-technology-iiit-vadodara-gujrat": {
+      "category": "Indian Institute of Information Technology(IIIT), Vadodara, Gujrat. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Information Technology"
+    },
+    "indian-institute-of-information-technology-agartala": {
+      "category": "Indian Institute of Information Technology, Agartala. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering"
+    },
+    "indian-institute-of-information-technology-allahabad": {
+      "category": "Indian Institute of Information Technology, Allahabad. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in Prayagraj, Uttar Pradesh. moderate fees",
+      "branches": "offers Electronics and Communication Engineering, Information Technology, Information Technology-Business Informatics"
+    },
+    "indian-institute-of-information-technology-design-manufacturing-kancheepuram": {
+      "category": "Indian Institute of Information Technology, Design & Manufacturing, Kancheepuram. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in Chennai, Tamil Nadu. moderate fees",
+      "branches": "offers B.Tech in Mechanical Engineering and M.Tech in AI and Robotics, B.Tech. in Electronics and Communication Engineering and M.Tech. in Communication Systems, B.Tech. in Electronics and Communication Engineering and M.Tech. in VLSI Design, Computer Science and Engineering, Electronics and Communication Engineering, Mechanical Engineering, Smart Manufacturing"
+    },
+    "indian-institute-of-information-technology-vadodara-international-campus-diu-iiitvicd": {
+      "category": "Indian Institute of Information Technology, Vadodara International Campus Diu (IIITVICD). IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering"
+    },
+    "indian-institute-of-technology-bhu-varanasi": {
+      "category": "Indian Institute of Technology (BHU) Varanasi. IIT (Indian Institute of Technology) institute. Government-run institute. located in Varanasi, Uttar Pradesh. NIRF rank 11. high fees",
+      "branches": "offers Architecture, Biochemical Engineering, Bioengineering, Ceramic Engineering, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics Engineering, Engineering Physics, Industrial Chemistry, Materials Science and Technology, Mathematics and Computing, Mechanical Engineering, Metallurgical Engineering, Mining Engineering, Pharmaceutical Engineering & Technology"
+    },
+    "indian-institute-of-technology-ism-dhanbad": {
+      "category": "Indian Institute of Technology (ISM) Dhanbad. IIT (Indian Institute of Technology) institute. Government-run institute. located in nan, Jharkhand. NIRF rank 15. high fees",
+      "branches": "offers Applied Geology, Applied Geophysics, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Engineering Physics, Environmental Engineering, Mathematics and Computing, Mechanical Engineering, Mineral and Metallurgical Engineering, Mining Engineering, Mining Machinery Engineering, Petroleum Engineering"
+    },
+    "indian-institute-of-technology-bhilai": {
+      "category": "Indian Institute of Technology Bhilai. IIT (Indian Institute of Technology) institute. Government-run institute. located in Durg, Chhattisgarh. NIRF rank 72. high fees",
+      "branches": "offers Computer Science and Engineering, Data Science and Artificial Intelligence, Electrical Engineering, Electronics and Communication Engineering, Materials Science and Metallurgical Engineering, Mechanical Engineering, Mechatronics Engineering"
+    },
+    "indian-institute-of-technology-bhubaneswar": {
+      "category": "Indian Institute of Technology Bhubaneswar. IIT (Indian Institute of Technology) institute. Government-run institute. located in Bhubaneswar, Odisha. NIRF rank 39. high fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Engineering Physics, Mechanical Engineering, Metallurgical and Materials Engineering"
+    },
+    "indian-institute-of-technology-bombay": {
+      "category": "Indian Institute of Technology Bombay. IIT (Indian Institute of Technology) institute. Government-run institute. located in Mumbai, Maharashtra. NIRF rank 3. high fees",
+      "branches": "offers Aerospace Engineering, BS in Mathematics, Chemical Engineering, Chemistry, Civil Engineering, Computer Science and Engineering, Economics, Electrical Engineering, Energy Engineering, Engineering Physics, Environmental Science and Engineering, Industrial Engineering and Operations Research, Mechanical Engineering, Metallurgical Engineering and Materials Science"
+    },
+    "indian-institute-of-technology-delhi": {
+      "category": "Indian Institute of Technology Delhi. IIT (Indian Institute of Technology) institute. Government-run institute. located in New Delhi, Delhi. NIRF rank 2. high fees",
+      "branches": "offers Biotechnology and Biochemical Engineering, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Energy Engineering, Engineering Physics, Engineering and Computational Mechanics, Materials Engineering, Mathematics and Computing, Mechanical Engineering, Production and Industrial Engineering, Textile Technology"
+    },
+    "indian-institute-of-technology-dharwad": {
+      "category": "Indian Institute of Technology Dharwad. IIT (Indian Institute of Technology) institute. Government-run institute. located in Dharwad, Karnataka. NIRF rank 77. high fees",
+      "branches": "offers Chemical and Biochemical Engineering, Civil and Infrastructure Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Engineering Physics, Interdisciplinary Sciences, Mathematics and Computing, Mechanical Engineering"
+    },
+    "indian-institute-of-technology-gandhinagar": {
+      "category": "Indian Institute of Technology Gandhinagar. IIT (Indian Institute of Technology) institute. Government-run institute. located in Gandhinagar, Gujarat. NIRF rank 25. high fees",
+      "branches": "offers Artificial Intelligence, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Integrated Circuit Design & Technology, Materials Engineering, Mechanical Engineering"
+    },
+    "indian-institute-of-technology-goa": {
+      "category": "Indian Institute of Technology Goa. IIT (Indian Institute of Technology) institute. Government-run institute. located in nan, Goa. high fees",
+      "branches": "offers Computer Science and Engineering, Electrical Engineering, Mathematics and Computing, Mechanical Engineering"
+    },
+    "indian-institute-of-technology-guwahati": {
+      "category": "Indian Institute of Technology Guwahati. IIT (Indian Institute of Technology) institute. Government-run institute. located in Guwahati, Assam. NIRF rank 8. high fees",
+      "branches": "offers Biosciences and Bioengineering, Chemical Engineering, Chemical Science and Technology, Civil Engineering, Computer Science and Engineering, Data Science and Artificial Intelligence, Electronics and Communication Engineering, Electronics and Electrical Engineering, Energy Engineering, Engineering Physics, Mathematics and Computing, Mechanical Engineering"
+    },
+    "indian-institute-of-technology-hyderabad": {
+      "category": "Indian Institute of Technology Hyderabad. IIT (Indian Institute of Technology) institute. Government-run institute. located in Hyderabad, Telangana. NIRF rank 7. high fees",
+      "branches": "offers Artificial Intelligence, Biomedical Engineering, Biotechnology and Bioinformatics, Chemical Engineering, Civil Engineering, Computational Engineering, Computer Science and Engineering, Electrical Engineering, Engineering Physics, Engineering Science, Industrial Chemistry, Materials Science and Metallurgical Engineering, Mathematics and Computing, Mechanical Engineering"
+    },
+    "indian-institute-of-technology-indore": {
+      "category": "Indian Institute of Technology Indore. IIT (Indian Institute of Technology) institute. Government-run institute. located in Indore, Madhya Pradesh. NIRF rank 12. high fees",
+      "branches": "offers Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Engineering Physics, Mathematics and Computing, Mechanical Engineering, Metallurgical Engineering and Materials Science, Space Sciences and Engineering"
+    },
+    "indian-institute-of-technology-jammu": {
+      "category": "Indian Institute of Technology Jammu. IIT (Indian Institute of Technology) institute. Government-run institute. located in Jammu, Jammu and Kashmir. NIRF rank 56. high fees",
+      "branches": "offers Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Materials Engineering, Mathematics and Computing, Mechanical Engineering"
+    },
+    "indian-institute-of-technology-jodhpur": {
+      "category": "Indian Institute of Technology Jodhpur. IIT (Indian Institute of Technology) institute. Government-run institute. located in Jodhpur, Rajasthan. NIRF rank 27. high fees",
+      "branches": "offers Artificial Intelligence and Data Science, Bio Engineering, Chemical Engineering, Chemistry, Civil and Infrastructure Engineering, Computer Science and Engineering, Electrical Engineering, Materials Engineering, Mechanical Engineering, Physics"
+    },
+    "indian-institute-of-technology-kanpur": {
+      "category": "Indian Institute of Technology Kanpur. IIT (Indian Institute of Technology) institute. Government-run institute. located in Kanpur, Uttar Pradesh. NIRF rank 4. high fees",
+      "branches": "offers Aerospace Engineering, Biological Sciences and Bioengineering, Chemical Engineering, Chemistry, Civil Engineering, Computer Science and Engineering, Earth Sciences, Economics, Electrical Engineering, Materials Science and Engineering, Mathematics and Scientific Computing, Mechanical Engineering, Physics, Statistics and Data Science"
+    },
+    "indian-institute-of-technology-kharagpur": {
+      "category": "Indian Institute of Technology Kharagpur. IIT (Indian Institute of Technology) institute. Government-run institute. located in Kharagpur, West Bengal. NIRF rank 5. high fees",
+      "branches": "offers Aerospace Engineering, Agricultural and Food Engineering, Applied Geology, Architecture, Artificial Intelligence, Biotechnology and Biochemical Engineering, Chemical Engineering, Chemistry, Civil Engineering, Computer Science and Engineering, Economics, Electrical Engineering, Electronics and Electrical Communication Engineering, Exploration Geophysics, Industrial and Systems Engineering, Instrumentation Engineering, Manufacturing Science and Engineering, Mathematics and Computing, Mechanical Engineering, Metallurgical and Materials Engineering, Mining Engineering, Ocean Engineering and Naval Architecture, Physics"
+    },
+    "indian-institute-of-technology-madras": {
+      "category": "Indian Institute of Technology Madras. IIT (Indian Institute of Technology) institute. Government-run institute. located in Chennai, Tamil Nadu. NIRF rank 1. high fees",
+      "branches": "offers Aerospace Engineering, Artificial Intelligence and Data Analytics, Biological Engineering, Biological Science, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Engineering Design, Engineering Physics, Mechanical Engineering, Metallurgical and Materials Engineering, Naval Architecture and Ocean Engineering, Physics"
+    },
+    "indian-institute-of-technology-mandi": {
+      "category": "Indian Institute of Technology Mandi. IIT (Indian Institute of Technology) institute. Government-run institute. located in Mandi, Himachal Pradesh. NIRF rank 26. high fees",
+      "branches": "offers B.Tech in General Engineering, B.Tech in Materials Science and Engineering, B.Tech in Mathematics and Computing, B.Tech in Microelectronics & VLSI, BS in Chemical Sciences, Bio Engineering, Civil Engineering, Computer Science and Engineering, Data Science and Engineering, Electrical Engineering, Engineering Physics, Mechanical Engineering"
+    },
+    "indian-institute-of-technology-palakkad": {
+      "category": "Indian Institute of Technology Palakkad. IIT (Indian Institute of Technology) institute. Government-run institute. located in Palakkad, Kerala. NIRF rank 64. high fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Data Science and Engineering, Electrical Engineering, Mechanical Engineering"
+    },
+    "indian-institute-of-technology-patna": {
+      "category": "Indian Institute of Technology Patna. IIT (Indian Institute of Technology) institute. Government-run institute. located in Patna, Bihar. NIRF rank 19. high fees",
+      "branches": "offers Artificial Intelligence and Data Science, B. Tech, B. Tech in CE. - M. Tech. in Geotechnical Engineering, B. Tech in CE. - M. Tech. in Structural Engineering, B.Tech, B.Tech. in Electronics and Communication Engineering and M.Tech. in Communication Systems, BS in Economics, Chemical Engineering, Chemical Science and Technology, Civil Engineering, Computer Science and Engineering, Economics, Electrical and Electronics Engineering, Electronics and Communication Engineering, Engineering Physics, Mathematics and Computing, Mechanical Engineering, Metallurgical and Materials Engineering"
+    },
+    "indian-institute-of-technology-roorkee": {
+      "category": "Indian Institute of Technology Roorkee. IIT (Indian Institute of Technology) institute. Government-run institute. located in Roorkee, Uttarakhand. NIRF rank 6. high fees",
+      "branches": "offers Architecture, Biosciences and Bioengineering, Chemical Engineering, Chemical Sciences, Civil Engineering, Computer Science and Engineering, Data Science and Artificial Intelligence, Economics, Electrical Engineering, Electronics and Communication Engineering, Energy Engineering, Engineering Physics, Geological Technology, Geophysical Technology, Mathematics & Computing, Mechanical Engineering, Metallurgical and Materials Engineering, Physics, Production and Industrial Engineering"
+    },
+    "indian-institute-of-technology-ropar": {
+      "category": "Indian Institute of Technology Ropar. IIT (Indian Institute of Technology) institute. Government-run institute. located in Rupnagar, Punjab. NIRF rank 32. high fees",
+      "branches": "offers Artificial Intelligence and Data Engineering, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Engineering Physics, Mathematics and Computing, Mechanical Engineering, Metallurgical and Materials Engineering"
+    },
+    "indian-institute-of-technology-tirupati": {
+      "category": "Indian Institute of Technology Tirupati. IIT (Indian Institute of Technology) institute. Government-run institute. located in Tirupati, Andhra Pradesh. NIRF rank 57. high fees",
+      "branches": "offers Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Engineering Physics, Mechanical Engineering"
+    },
+    "indian-school-of-mines-dhanbad": {
+      "category": "Indian School of Mines Dhanbad. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": ""
+    },
+    "indian-institute-of-information-technology-raichur-karnataka": {
+      "category": "Indian institute of information technology, Raichur, Karnataka. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Artificial Intelligence and Data Science, Computer Science and Engineering, Mathematics and Computing"
+    },
+    "institute-of-chemical-technology-mumbai-indian-oil-odisha-campus-bhubaneswar": {
+      "category": "Institute of Chemical Technology, Mumbai: Indian Oil Odisha Campus, Bhubaneswar. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Maharashtra. NIRF rank 41",
+      "branches": "offers Chemical Engineering"
+    },
+    "institute-of-engineering-and-technology-dr-h-s-gour-university-sagar-a-central-university": {
+      "category": "Institute of Engineering and Technology, Dr. H. S. Gour University. Sagar (A Central University). GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Aeronautical Engineering, Computer Science and Engineering, Dairy Engineering, Electronics and Communication Engineering, Fashion and Apparel Engineering, Food Engineering and Technology"
+    },
+    "institute-of-infrastructure-technology-research-and-management-ahmedabad": {
+      "category": "Institute of Infrastructure, Technology, Research and Management-Ahmedabad. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Civil Engineering, Computer Engineering, Electrical Engineering, Mechanical Engineering"
+    },
+    "institute-of-technology-guru-ghasidas-vishwavidyalaya-a-central-university-bilaspur-c-g": {
+      "category": "Institute of Technology, Guru Ghasidas Vishwavidyalaya (A Central University), Bilaspur, (C.G.). GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": ""
+    },
+    "international-institute-of-information-technology-bhubaneswar": {
+      "category": "International Institute of Information Technology, Bhubaneswar. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Bhubaneswar, Odisha. low fees",
+      "branches": "offers Computer Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Telecommunication Engineering, Information Technology"
+    },
+    "international-institute-of-information-technology-naya-raipur": {
+      "category": "International Institute of Information Technology, Naya Raipur. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Chhattisgarh",
+      "branches": "offers Computer Science and Engineering, Data Science and Artificial Intelligence, Electronics and Communication Engineering"
+    },
+    "j-k-institute-of-applied-physics-technology-department-of-electronics-communication-university-of-allahabad-allahabad": {
+      "category": "J.K. Institute of Applied Physics & Technology, Department of Electronics & Communication, University of Allahabad- Allahabad. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "jawaharlal-nehru-university-delhi": {
+      "category": "Jawaharlal Nehru University, Delhi. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering"
+    },
+    "malaviya-national-institute-of-technology-jaipur": {
+      "category": "Malaviya National Institute of Technology Jaipur. NIT (National Institute of Technology) institute. Government-run institute. located in Jaipur, Rajasthan. NIRF rank 42. low fees",
+      "branches": "offers Architecture, Artificial Intelligence and Data Engineering, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Mechanical Engineering, Metallurgical and Materials Engineering"
+    },
+    "maulana-azad-national-institute-of-technology-bhopal": {
+      "category": "Maulana Azad National Institute of Technology Bhopal. NIT (National Institute of Technology) institute. Government-run institute. located in Madhya Pradesh. NIRF rank 81",
+      "branches": "offers Architecture, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Materials Science and Metallurgical Engineering, Mathematics and Data Science, Mechanical Engineering, Planning"
+    },
+    "mizoram-university-aizawl": {
+      "category": "Mizoram University, Aizawl. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Architecture, Civil Engineering, Computer Engineering, Electrical Engineering, Electronics and Communication Engineering, Information Technology"
+    },
+    "motilal-nehru-national-institute-of-technology-allahabad": {
+      "category": "Motilal Nehru National Institute of Technology Allahabad. NIT (National Institute of Technology) institute. Government-run institute. located in Uttar Pradesh. NIRF rank 48",
+      "branches": "offers Bio Technology, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Engineering and Computational Mechanics, Materials Engineering, Mechanical Engineering, Production and Industrial Engineering"
+    },
+    "national-institute-of-advanced-manufacturing-technology-ranchi": {
+      "category": "National Institute of Advanced Manufacturing Technology, Ranchi. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Ranchi, Jharkhand. low fees",
+      "branches": "offers Computer Engineering, Mechanical Engineering, Metallurgy and Materials Engineering, Production and Industrial Engineering"
+    },
+    "national-institute-of-electronics-and-information-technology-aurangabad-maharashtra": {
+      "category": "National Institute of Electronics and Information Technology, Aurangabad (Maharashtra). GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Electronic Engineering"
+    },
+    "national-institute-of-food-technology-entrepreneurship-and-management-kundli": {
+      "category": "National Institute of Food Technology Entrepreneurship and Management, Kundli. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Food Technology and Management"
+    },
+    "national-institute-of-food-technology-entrepreneurship-and-management-sonepat-haryana": {
+      "category": "National Institute of Food Technology Entrepreneurship and Management, Sonepat, Haryana. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": ""
+    },
+    "national-institute-of-food-technology-entrepreneurship-and-management-thanjavur": {
+      "category": "National Institute of Food Technology Entrepreneurship and Management, Thanjavur. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Tamil Nadu",
+      "branches": "offers Food Technology"
+    },
+    "national-institute-of-foundry-forge-technology-hatia-ranchi": {
+      "category": "National Institute of Foundry & Forge Technology, Hatia, Ranchi. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": ""
+    },
+    "national-institute-of-technology-agartala": {
+      "category": "National Institute of Technology Agartala. NIT (National Institute of Technology) institute. Government-run institute. located in Agratala, Tripura. low fees",
+      "branches": "offers Biotechnology and Biochemical Engineering, Chemical Engineering, Chemistry, Civil Engineering, Computational Mathematics, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Electronics and Instrumentation Engineering, Engineering Physics, Mathematics & Computing, Mechanical Engineering, Physics, Production Engineering"
+    },
+    "national-institute-of-technology-arunachal-pradesh": {
+      "category": "National Institute of Technology Arunachal Pradesh. NIT (National Institute of Technology) institute. Government-run institute. located in Itanagar, Arunachal Pradesh. low fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "national-institute-of-technology-calicut": {
+      "category": "National Institute of Technology Calicut. NIT (National Institute of Technology) institute. Government-run institute. located in Kozhikode, Kerala. NIRF rank 21. low fees",
+      "branches": "offers Architecture, Bio Technology, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Engineering Physics, Materials Science and Engineering, Mechanical Engineering, Production Engineering"
+    },
+    "national-institute-of-technology-delhi": {
+      "category": "National Institute of Technology Delhi. NIT (National Institute of Technology) institute. Government-run institute. located in Delhi, Delhi. NIRF rank 65. low fees",
+      "branches": "offers Aerospace Engineering, Artificial Intelligence and Data Science, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Mechanical Engineering, VLSI Design and Technology"
+    },
+    "national-institute-of-technology-durgapur": {
+      "category": "National Institute of Technology Durgapur. NIT (National Institute of Technology) institute. Government-run institute. located in Durgapur, West Bengal. NIRF rank 49. low fees",
+      "branches": "offers B.Tech in Mathematics and Computing, Bio Technology, Biotechnology, Chemical Engineering, Chemistry, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Mechanical Engineering, Metallurgical and Materials Engineering"
+    },
+    "national-institute-of-technology-goa": {
+      "category": "National Institute of Technology Goa. NIT (National Institute of Technology) institute. Government-run institute. located in Ponda, Goa. low fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "national-institute-of-technology-hamirpur": {
+      "category": "National Institute of Technology Hamirpur. NIT (National Institute of Technology) institute. Government-run institute. located in Hamirpur, Himachal Pradesh. NIRF rank 97. low fees",
+      "branches": "offers Architecture, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Engineering Physics, Materials Science and Engineering, Mathematics and Computing, Mechanical Engineering"
+    },
+    "national-institute-of-technology-karnataka-surathkal": {
+      "category": "National Institute of Technology Karnataka, Surathkal. NIT (National Institute of Technology) institute. Government-run institute. located in Surathkal, Karnataka. NIRF rank 17. low fees",
+      "branches": "offers Artificial Intelligence, Chemical Engineering, Civil Engineering, Computational and Data Science, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Information Technology, Mechanical Engineering, Metallurgical and Materials Engineering, Mining Engineering"
+    },
+    "national-institute-of-technology-meghalaya": {
+      "category": "National Institute of Technology Meghalaya. NIT (National Institute of Technology) institute. Government-run institute. located in Shillong, Meghalaya. NIRF rank 83. low fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "national-institute-of-technology-nagaland": {
+      "category": "National Institute of Technology Nagaland. NIT (National Institute of Technology) institute. Government-run institute. located in Nagaland",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Electronics and Instrumentation Engineering, Mechanical Engineering"
+    },
+    "national-institute-of-technology-patna": {
+      "category": "National Institute of Technology Patna. NIT (National Institute of Technology) institute. Government-run institute. located in Patna, Bihar. NIRF rank 53. low fees",
+      "branches": "offers Architecture, Chemical Technology, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Material Science and Engineering, Mathematics and Computing Technology, Mechanical Engineering, Mechatronics and Automation Engineering"
+    },
+    "national-institute-of-technology-puducherry": {
+      "category": "National Institute of Technology Puducherry. NIT (National Institute of Technology) institute. Government-run institute. located in Karaikal, Pondicherry. NIRF rank 99. low fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "national-institute-of-technology-raipur": {
+      "category": "National Institute of Technology Raipur. NIT (National Institute of Technology) institute. Government-run institute. located in Raipur, Chhattisgarh. NIRF rank 86. low fees",
+      "branches": "offers Architecture, Bio Technology, Biomedical Engineering, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Information Technology, Mechanical Engineering, Metallurgical and Materials Engineering, Mining Engineering"
+    },
+    "national-institute-of-technology-sikkim": {
+      "category": "National Institute of Technology Sikkim. NIT (National Institute of Technology) institute. Government-run institute. located in South Sikkim, Sikkim. low fees",
+      "branches": "offers Artificial Intelligence and Machine Learning, Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "national-institute-of-technology-andhra-pradesh": {
+      "category": "National Institute of Technology, Andhra Pradesh. NIT (National Institute of Technology) institute. Government-run institute. located in Andhra Pradesh",
+      "branches": "offers Bio Technology, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mechanical Engineering, Metallurgical and Materials Engineering"
+    },
+    "national-institute-of-technology-jamshedpur": {
+      "category": "National Institute of Technology, Jamshedpur. NIT (National Institute of Technology) institute. Government-run institute. located in Jamshedpur, Jharkhand. NIRF rank 82. low fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Engineering and Computational Mechanics, Mechanical Engineering, Metallurgical and Materials Engineering, Production and Industrial Engineering"
+    },
+    "national-institute-of-technology-kurukshetra": {
+      "category": "National Institute of Technology, Kurukshetra. NIT (National Institute of Technology) institute. Government-run institute. located in Kurukshetra, Haryana. NIRF rank 85. low fees",
+      "branches": "offers Architecture and Planning, Artificial Intelligence and Data Science, Artificial Intelligence and Machine Learning, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Industrial Internet of Things, Information Technology, Mathematics and Computing, Mechanical Engineering, Microelectronics & VLSI Engineering, Production and Industrial Engineering, ROBOTICS & AUTOMATION, SUSTAINABLE ENERGY TECHNOLOGIES"
+    },
+    "national-institute-of-technology-manipur": {
+      "category": "National Institute of Technology, Manipur. NIT (National Institute of Technology) institute. Government-run institute. located in Imphal, Manipur. low fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "national-institute-of-technology-mizoram": {
+      "category": "National Institute of Technology, Mizoram. NIT (National Institute of Technology) institute. Government-run institute. located in Mizoram",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Mathematics and Computing, Mechanical Engineering"
+    },
+    "national-institute-of-technology-rourkela": {
+      "category": "National Institute of Technology, Rourkela. NIT (National Institute of Technology) institute. Government-run institute. located in Rourkela, Odisha. NIRF rank 13. low fees",
+      "branches": "offers Architecture, Artificial Intelligence, Bio Technology, Biomedical Engineering, Ceramic Engineering, Ceramic Engineering and M.Tech Industrial Ceramic, Chemical Engineering, Chemistry, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Electronics and Instrumentation Engineering, Food Process Engineering, Industrial Design, Life Science, Mathematics, Mechanical Engineering, Metallurgical and Materials Engineering, Mining Engineering, Physics"
+    },
+    "national-institute-of-technology-silchar": {
+      "category": "National Institute of Technology, Silchar. NIT (National Institute of Technology) institute. Government-run institute. located in Silchar, Assam. NIRF rank 50. low fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Electronics and Instrumentation Engineering, Mechanical Engineering"
+    },
+    "national-institute-of-technology-srinagar": {
+      "category": "National Institute of Technology, Srinagar. NIT (National Institute of Technology) institute. Government-run institute. located in Srinagar, Jammu and Kashmir. NIRF rank 73. low fees",
+      "branches": "offers Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Information Technology, Mechanical Engineering, Metallurgical and Materials Engineering"
+    },
+    "national-institute-of-technology-tiruchirappalli": {
+      "category": "National Institute of Technology, Tiruchirappalli. NIT (National Institute of Technology) institute. Government-run institute. located in Tiruchirappalli, Tamil Nadu. NIRF rank 9. low fees",
+      "branches": "offers Architecture, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Instrumentation and Control Engineering, Mechanical Engineering, Metallurgical and Materials Engineering, Production Engineering"
+    },
+    "national-institute-of-technology-uttarakhand": {
+      "category": "National Institute of Technology, Uttarakhand. NIT (National Institute of Technology) institute. Government-run institute. located in Srinagar (Garhwal), Uttarakhand. low fees",
+      "branches": "offers Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "national-institute-of-technology-warangal": {
+      "category": "National Institute of Technology, Warangal. NIT (National Institute of Technology) institute. Government-run institute. located in Warangal, Telangana. NIRF rank 28. low fees",
+      "branches": "offers Bio Technology, Chemical Engineering, Chemistry, Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mathematics, Mathematics and Computing, Mechanical Engineering, Metallurgical and Materials Engineering, Physics"
+    },
+    "north-eastern-regional-institute-of-science-and-technology-nirjuli-791109-itanagar-arunachal-pradesh": {
+      "category": "North Eastern Regional Institute of Science and Technology, Nirjuli-791109 (Itanagar),Arunachal Pradesh. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Arunachal Pradesh",
+      "branches": "offers Agricultural Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "north-eastern-hill-university-shillong": {
+      "category": "North-Eastern Hill University, Shillong. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Biomedical Engineering, Electronics and Communication Engineering, Energy Engineering, Information Technology"
+    },
+    "pondicherry-engineering-college-puducherry": {
+      "category": "Pondicherry Engineering College, Puducherry. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Pondicherry",
+      "branches": ""
+    },
+    "pt-dwarka-prasad-mishra-indian-institute-of-information-technology-design-manufacture-jabalpur": {
+      "category": "Pt. Dwarka Prasad Mishra Indian Institute of Information Technology, Design & Manufacture Jabalpur. IIIT (Indian Institute of Information Technology) institute. PPP-run institute. located in nan",
+      "branches": "offers Computer Science and Engineering, Electronics and Communication Engineering, Mechanical Engineering, Smart Manufacturing"
+    },
+    "puducherry-technological-university-puducherry": {
+      "category": "Puducherry Technological University, Puducherry. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Pondicherry",
+      "branches": "offers Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Electronics and Instrumentation Engineering, Information Technology, Mechanical Engineering, Mechatronics Engineering"
+    },
+    "punjab-engineering-college-chandigarh": {
+      "category": "Punjab Engineering College, Chandigarh. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Chandigarh. NIRF rank 85",
+      "branches": "offers Aerospace Engineering, Civil Engineering, Computer Science Engineering, Computer Science and Engineering, Electrical Engineering, Electronics Engineering, Electronics and Communication Engineering, Mathematics and Computing, Mechanical Engineering, Metallurgical and Materials Engineering, Production and Industrial Engineering"
+    },
+    "sant-longowal-institute-of-engineering-and-technology": {
+      "category": "Sant Longowal Institute of Engineering and Technology. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Longowal, Punjab. NIRF rank 79. low fees",
+      "branches": "offers Chemical Engineering, Chemistry, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Food Technology, Instrumentation and Control Engineering, Mathematics, Mechanical Engineering, Physics"
+    },
+    "sardar-vallabhbhai-national-institute-of-technology-surat": {
+      "category": "Sardar Vallabhbhai National Institute of Technology, Surat. NIT (National Institute of Technology) institute. Government-run institute. located in Gujarat. NIRF rank 66",
+      "branches": "offers Artificial Intelligence, Chemical Engineering, Chemistry, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Electronics and VLSI Engineering, Engineering Physics, Industrial Chemistry, Mathematics, Mathematics and Computing, Mechanical Engineering, Physics"
+    },
+    "school-of-engineering-tezpur-university-napaam-tezpur": {
+      "category": "School of Engineering, Tezpur University, Napaam, Tezpur. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Assam",
+      "branches": "offers Bachelor of Design, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Food Engineering and Technology, Mechanical Engineering"
+    },
+    "school-of-planning-architecture-bhopal": {
+      "category": "School of Planning & Architecture, Bhopal. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Architecture, Planning"
+    },
+    "school-of-planning-architecture-new-delhi": {
+      "category": "School of Planning & Architecture, New Delhi. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Architecture, Planning"
+    },
+    "school-of-planning-architecture-vijayawada": {
+      "category": "School of Planning & Architecture: Vijayawada. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Architecture, Planning"
+    },
+    "school-of-studies-of-engineering-and-technology-guru-ghasidas-vishwavidyalaya-bilaspur": {
+      "category": "School of Studies of Engineering and Technology, Guru Ghasidas Vishwavidyalaya, Bilaspur. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": "offers Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Industrial and Production Engineering, Information Technology, Mechanical Engineering"
+    },
+    "shri-mata-vaishno-devi-university-katra-jammu-kashmir": {
+      "category": "Shri Mata Vaishno Devi University, Katra, Jammu & Kashmir. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Jammu and Kashmir",
+      "branches": "offers Architecture, B.Tech in Mathematics and Computing, Bio Technology, Civil Engineering, Computer Science and Engineering, Electrical Engineering, Electronics and Communication Engineering, Mechanical Engineering"
+    },
+    "university-of-hyderabad": {
+      "category": "University of Hyderabad. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in Hyderabad, Telangana. NIRF rank 74. low fees",
+      "branches": "offers Computer Science and Engineering, Materials Engineering"
+    },
+    "visvesvaraya-national-institute-of-technology-nagpur": {
+      "category": "Visvesvaraya National Institute of Technology, Nagpur. NIT (National Institute of Technology) institute. Government-run institute. located in Nagpur, Maharashtra. NIRF rank 44. low fees",
+      "branches": "offers Architecture, Chemical Engineering, Civil Engineering, Computer Science and Engineering, Electrical and Electronics Engineering, Electronics and Communication Engineering, Mechanical Engineering, Metallurgical and Materials Engineering, Mining Engineering"
+    },
+    "lndian-institute-of-food-processing-technology-thanjavur-tamil-naidu": {
+      "category": "lndian Institute of Food Processing Technology, Thanjavur, Tamil Naidu.. GFTI (Government Funded Technical Institute) institute. Government-run institute. located in nan",
+      "branches": ""
+    }
+  }
+}

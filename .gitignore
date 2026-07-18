@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+frontend/dist/
+*.db
+!college_compass.db
+*.db-journal
+*.db-wal
+*.db-shm
+.env
+data/raw/
+data/processed/
+.pytest_cache/
+.claude/
+.vite/
+.planning/
