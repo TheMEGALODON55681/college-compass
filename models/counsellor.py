@@ -47,8 +47,8 @@ NUMBER_PATTERN = re.compile(r"-?\d[\d,]*(?:\.\d+)?%?")
 
 
 def _client():
-    endpoint = os.environ.get("LLM_ENDPOINT", DEFAULT_LLM_ENDPOINT)
-    api_key = os.environ.get("LLM_API_KEY", "not-needed")
+    endpoint = os.environ.get("LLM_ENDPOINT") or DEFAULT_LLM_ENDPOINT
+    api_key = os.environ.get("LLM_API_KEY") or "not-needed"
     return OpenAI(base_url=endpoint, api_key=api_key)
 
 
@@ -148,7 +148,7 @@ def generate_answer(question, bundle):
         {"role": "user", "content": f"Context records:\n{context_text}\n\nStudent question: {question}"},
     ]
 
-    model = os.environ.get("LLM_MODEL", DEFAULT_LLM_MODEL)
+    model = os.environ.get("LLM_MODEL") or DEFAULT_LLM_MODEL
     try:
         client = _client()
         response = client.chat.completions.create(model=model, messages=messages, temperature=0.2)

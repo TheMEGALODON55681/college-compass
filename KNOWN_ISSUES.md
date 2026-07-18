@@ -1,35 +1,51 @@
 # Known issues
 
-## Grounded counsellor's live-generation path is unverified against a real LLM
+## Grounded counsellor's context can exceed a free-tier provider's per-minute token limit
 
-`POST /chat` (`models/counsellor.py`) has never been run end to end against a
-real language model. No local LLM server (Ollama, LM Studio, etc.) or hosted
-API key was available in the environment where it was built and tested.
+Verified against a real hosted LLM (Groq, `openai/gpt-oss-120b`) on
+2026-07-18. Four question types were manually tested against `POST /chat`:
 
-What is verified:
-- The numeric grounding validator (`validate_grounding`) is unit-tested,
-  including a case where a fabricated rank survives a retry and gets
-  stripped rather than shown (`tests/test_counsellor_grounding.py`).
-- The unreachable-endpoint path is tested against a real dead port (not
-  mocked) and confirmed to return a clean error, never a fabricated answer.
-- Structured/semantic retrieval routing is verified directly (correct
-  college matched, correct numbers returned).
+- Structured/forecast (named college + student profile, e.g. "predicted
+  closing rank and admission chance at IIT Bombay Environmental Science and
+  Engineering" for rank 5000 OPEN): returned a real generated answer citing
+  the predicted closing rank, band, and calibrated admission probability,
+  all matching the retrieved context exactly. `blocked_ungrounded_figure`
+  was `false`.
+- Semantic/fuzzy ("comparable colleges to top IITs with a strong CS
+  reputation"): returned real FAISS similarity matches with scores, all
+  grounded and correctly cited.
+- Placement question ("average placement package and starting salary at IIT
+  Bombay CS"): declined with the fixed placement-decline message, before
+  ever reaching the LLM.
+- Out-of-scope general question ("capital of France / when did WW2 end"):
+  the model correctly refused and stayed in JoSAA/JEE Main scope, per the
+  system prompt.
 
-What is NOT verified:
-- Whether a real model stays within the system prompt's scope
-  (JoSAA/JEE Main only, no placement questions, no general-knowledge
-  answers) when talking to an actual LLM rather than a scripted fake
-  response.
-- Whether real generated answers read naturally and are useful, since no
-  real answer has ever been produced.
-- Whether the retry-on-ungrounded-number path behaves as expected against a
-  real model's actual failure modes (a real LLM may fail differently than
-  the fabricated-number test fixtures do).
+One real failure mode surfaced during testing: a "mixed" question that both
+names a college and asks for alternatives (e.g. "colleges similar to IIT
+Delhi") pulls the named college's full historical per-branch closing-rank
+history plus five semantically similar colleges' data into one context. That
+prompt (about 8,477 tokens) exceeded Groq's free/on-demand tier limit of
+8,000 tokens per minute, and the call failed with a 413 `rate_limit_exceeded`
+from the provider. `models/counsellor.py`'s `except Exception` catches this
+the same way as a genuinely unreachable endpoint and returns the same clean
+"not reachable" message - correct in that it never fabricates an answer, but
+the message doesn't distinguish "the server is down" from "the provider
+rejected this request as too large." A pure semantic question with no named
+college (no per-branch history attached) stayed under the limit and
+succeeded normally.
 
-This must be checked against a live LLM endpoint before the counsellor is
-exposed to real students. Set `LLM_ENDPOINT` and `LLM_MODEL` to a running
-OpenAI-compatible server and manually test a range of questions (structured,
-semantic, placement, out-of-scope) before relying on it.
+Not something to fix silently: shrinking the context bundle is a change to
+what the grounding validator can cite from, so it needs a deliberate call
+rather than a quiet patch. Options for later: split a "mixed" question into
+two smaller LLM calls, cap historical branches attached per named college,
+or note in the UI that a paid tier / larger-context provider avoids this.
+For now, on a paid tier or a provider without an aggressive per-minute token
+cap, this does not happen.
+
+The retry-on-ungrounded-number path and answer-quality/naturalness were not
+separately stress-tested beyond the four calls above, since none of the four
+real answers ever contained an ungrounded figure to strip.
 
 ## Postgres schema has no indexes beyond the ones SQLAlchemy creates for PK/FK
 
