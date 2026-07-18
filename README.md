@@ -52,20 +52,33 @@ and the table in this section's source will render.*
 
 ## Architecture, mapped
 
-[docs/architecture-graph.svg](docs/architecture-graph.svg) is a real code
-graph, not a hand-drawn diagram: 500 nodes and 983 edges across 27
-communities, pulled straight from the source with AST parsing plus semantic
-extraction. Zero import cycles. It's large (2MB, 500 nodes) so it isn't
-embedded here: open it directly, or browse the full interactive version at
-[docs/architecture-graph.html](docs/architecture-graph.html) (open it
-locally and click around). The underlying audit, including every detected
-hub and cross-module connection, is in
-[docs/ARCHITECTURE_GRAPH_REPORT.md](docs/ARCHITECTURE_GRAPH_REPORT.md).
+The request path end to end, from the student's form to every feature it
+powers:
 
-A data pipeline feeds a trained regressor, an eligibility filter and ranker
-sit on top of that forecast, and a PDF report and a grounded counsellor
-both reuse the exact recommendation output rather than recomputing
-anything. See "How it works" below for the walkthrough.
+```mermaid
+flowchart TD
+    A[Student form: rank + category] --> B[POST /recommend]
+    B --> C[Eligibility filter over regressor forecast]
+    C --> D[Ranker reorder]
+    D --> E[Banded results: safe / moderate / dream]
+    E --> F[GET /similar]
+    E --> G[POST /report PDF]
+    E --> H[POST /chat grounded counsellor]
+```
+
+The PDF report and the grounded counsellor both reuse this exact
+recommendation output. Neither recomputes anything. See "How it works"
+below for what happens at each step.
+
+A separate auto-generated dependency graph covers module-level coupling
+instead of request flow: 500 nodes and 983 edges across 27 communities,
+pulled straight from the source with AST parsing plus semantic extraction,
+zero import cycles. Use it to audit coupling, not to follow the request
+flow above. The SVG is at
+[docs/architecture-graph.svg](docs/architecture-graph.svg), an interactive
+version at [docs/architecture-graph.html](docs/architecture-graph.html),
+and the full audit is in
+[docs/ARCHITECTURE_GRAPH_REPORT.md](docs/ARCHITECTURE_GRAPH_REPORT.md).
 
 ## Quickstart
 
