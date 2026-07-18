@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { askCounsellor } from "../api/client";
-import type { ChatResponse } from "../types";
+import type { ChatResponse, RecommendRequest } from "../types";
 
 type ChatStatus = "idle" | "asking" | "answered" | "error";
 
@@ -9,7 +9,11 @@ interface ChatTurn {
   response: ChatResponse;
 }
 
-export default function ChatPanel() {
+interface ChatPanelProps {
+  studentProfile: RecommendRequest | null;
+}
+
+export default function ChatPanel({ studentProfile }: ChatPanelProps) {
   const [question, setQuestion] = useState("");
   const [status, setStatus] = useState<ChatStatus>("idle");
   const [turns, setTurns] = useState<ChatTurn[]>([]);
@@ -23,7 +27,7 @@ export default function ChatPanel() {
     setStatus("asking");
     setErrorMessage("");
     try {
-      const response = await askCounsellor({ question: trimmed });
+      const response = await askCounsellor({ question: trimmed, student_profile: studentProfile });
       setTurns((prev) => [...prev, { question: trimmed, response }]);
       setQuestion("");
       setStatus("answered");
@@ -35,7 +39,19 @@ export default function ChatPanel() {
 
   return (
     <section className="chat-panel">
-      <h2>Ask the counsellor</h2>
+      <h2>
+        Ask the counsellor{" "}
+        <span
+          className="approximate-tag"
+          title={
+            studentProfile
+              ? "Answers use your rank, category, and preferences from the last recommendation."
+              : "Run a recommendation first to personalize answers with your rank and category."
+          }
+        >
+          {studentProfile ? "Personalized" : "General"}
+        </span>
+      </h2>
       <p className="chat-panel-note">
         Answers are grounded only in this system's own JoSAA data - cutoffs, forecasts, NIRF ranks, and fees. It will
         not answer placement/package questions or anything outside JEE Main / JoSAA admissions, and it will say so

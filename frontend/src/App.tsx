@@ -77,7 +77,7 @@ export default function App() {
             {status === "submitting" && <p className="loading-message">Scoring eligible colleges against real JoSAA history...</p>}
             {status === "done" && result && lastRequest && <ResultsView response={result} request={lastRequest} />}
 
-            {meta.counsellor_available && <ChatPanel />}
+            {meta.counsellor_available && <ChatPanel studentProfile={lastRequest} />}
           </>
         )}
       </main>
