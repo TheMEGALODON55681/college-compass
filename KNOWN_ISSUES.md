@@ -1,5 +1,35 @@
 # Known issues
 
+## Grounding validation checks membership in one flat pool, not per-field or per-college attribution
+
+`validate_grounding` (`models/counsellor.py`) extracts every numeric token
+the model states (`extract_numbers`) and checks whether that exact string
+appears anywhere in `_grounded_value_strings(bundle)` - one flat set built
+from every record's value across the whole context bundle (ranks,
+probabilities, fees, semantic-match scores), plus every record's year and
+the student's own stated inputs. It does not scope the check by field kind
+or by which college/branch the model attributed the number to.
+
+Concretely: if a context bundle covers several colleges (the normal case for
+a semantic "colleges like X" question, which returns five), a number that is
+genuinely grounded for college A's predicted closing rank would also pass
+validation if the model mistakenly stated it as college B's closing rank, or
+as college A's NIRF rank, or as a year. The validator only proves "this
+number appears somewhere in real data", not "this number is the right kind
+of value, attached to the right college". A same-value collision across
+fields or colleges (e.g. two records that happen to share a digit-for-digit
+value) would not be caught either.
+
+Not fixed here - this is the optional grounding hardening named in the
+project plan. A fix would scope `_grounded_value_strings` (or the comparison
+in `validate_grounding`) per record kind (`predicted_closing_rank` vs
+`nirf_rank` vs `fees_annual_lakhs` vs `year`) and ideally per college_id, so
+a rank-context number can only validate against a rank value for the college
+the model is talking about. Deferred because it changes the shape of the
+core grounding check - a product invariant - so it needs a deliberate pass
+with its own test coverage, not a quiet change folded into a deploy-readiness
+phase.
+
 ## Grounded counsellor's context can exceed a free-tier provider's per-minute token limit
 
 Verified against a real hosted LLM (Groq, `openai/gpt-oss-120b`) on

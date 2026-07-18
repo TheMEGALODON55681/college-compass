@@ -1,6 +1,6 @@
 import type { ApiError, ChatRequest, ChatResponse, MetaResponse, RecommendRequest, RecommendResponse, SimilarResponse } from "../types";
 
-const API_BASE = "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8000";
 
 function extractErrorMessage(body: ApiError): string {
   if (typeof body.detail === "string") return body.detail;

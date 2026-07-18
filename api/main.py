@@ -98,7 +98,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="College Compass API", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+# CORS_ORIGINS is a comma-separated list of allowed frontend origins. Unset
+# defaults to "*" (any origin) for local dev, where the frontend runs on an
+# arbitrary Vite dev-server port. Set it to the real frontend origin(s) for
+# any deploy, e.g. CORS_ORIGINS=https://collegecompass.example.com.
+cors_origins = [o.strip() for o in (os.environ.get("CORS_ORIGINS") or "").split(",") if o.strip()] or ["*"]
+app.add_middleware(CORSMiddleware, allow_origins=cors_origins, allow_methods=["*"], allow_headers=["*"])
 
 
 class RecommendRequest(BaseModel):
