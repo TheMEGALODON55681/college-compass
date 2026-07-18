@@ -1,163 +1,181 @@
 # College Compass
 
-A JEE Main / JoSAA college recommendation system. Given a student's rank and
-category, it returns eligible college-branches banded safe/moderate/dream,
-predicted with a trained cutoff regressor and calibrated admission
-probabilities. It also provides item-to-item "similar colleges" retrieval, a
+A JEE Main / JoSAA college recommendation system. Give it your rank and
+category, get back eligible college-branches banded safe, moderate, and
+dream, each with a predicted closing rank and a calibrated admission
+probability. It also provides item-to-item "similar colleges" retrieval, a
 grounded counsellor chatbot, and a downloadable PDF counselling report.
 
-See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for a gap to check before using the
-counsellor with real students.
+This is a decision aid, not an official JoSAA tool and not advice. See
+[Scope and limitations](#scope-and-limitations) before you rely on it.
 
-## Stack
+## The honesty premise
 
-- Backend: FastAPI + SQLAlchemy, SQLite for local dev (`DATABASE_URL` swaps to Postgres)
-- Models: LightGBM (cutoff regressor, ranker), isotonic calibration (admission probability), sentence-transformers + FAISS (similarity retrieval)
-- PDF: reportlab
-- Frontend: React + TypeScript + Vite
+Every number on screen is one of three things: real historical JoSAA data,
+a model output with an honest error story attached, or the student's own
+input echoed back. Nothing is invented, which is what separates this from
+the "predictor" sites that guess last year's cutoffs at you with false
+confidence.
 
-## Setup
+Two guarantees back that up, both enforced in code, not just written in a
+prompt:
 
-```
-pip install -r requirements.txt
-cp .env.example .env
-```
+- Cold-start estimates are visibly different from confident ones. A college
+  with too little year-over-year history gets a hatched confidence bar and
+  an "approximate" label, in the UI and in the PDF. Never a clean bar for a
+  wobbly number.
+- The counsellor chatbot re-extracts every number it states and checks it
+  against real retrieved data with an exact match. A number that doesn't
+  match gets one stricter retry, then gets stripped from the answer rather
+  than shown.
 
-The SQLite database (`college_compass.db`) ships with the repo. `DATABASE_URL`
-defaults to it; only set it if you're pointing at Postgres instead. All
-database access routes through `db/connection.py` - see "Postgres migration"
-below.
+## Screenshots
 
-## Running
+*Not yet captured. Run the app locally (`python -m uvicorn api.main:app --port 8000`
+and, in another terminal, `cd frontend && npm run dev`), submit rank
+`15000`, category `OPEN`, home state `Uttar Pradesh` with "prefer home
+state" checked, and branch preference `CS-adjacent`. That profile naturally
+produces both a confident and a cold-start result near the top of the safe
+band. Drop the five images at the paths below with those exact filenames
+and the table in this section's source will render.*
+
+<!--
+| | |
+|---|---|
+| ![Student form filled in](docs/screenshots/student-form.png) | ![Banded results with confidence meters](docs/screenshots/banded-results.png) |
+| The student form | Safe / moderate / dream results, one solid confidence bar and one hatched cold-start bar |
+| ![Similar colleges expanded](docs/screenshots/similar-colleges.png) | ![Counsellor answering with sources](docs/screenshots/counsellor-answer.png) |
+| Similar colleges, expanded on a card | The counsellor answering a grounded question, with source chips |
+| ![Downloaded PDF report](docs/screenshots/pdf-report.png) | |
+| The downloaded PDF report | |
+-->
+
+## Architecture, mapped
+
+[docs/architecture-graph.svg](docs/architecture-graph.svg) is a real code
+graph, not a hand-drawn diagram: 500 nodes and 983 edges across 27
+communities, pulled straight from the source with AST parsing plus semantic
+extraction. Zero import cycles. It's large (2MB, 500 nodes) so it isn't
+embedded here: open it directly, or browse the full interactive version at
+[docs/architecture-graph.html](docs/architecture-graph.html) (open it
+locally and click around). The underlying audit, including every detected
+hub and cross-module connection, is in
+[docs/ARCHITECTURE_GRAPH_REPORT.md](docs/ARCHITECTURE_GRAPH_REPORT.md).
+
+A data pipeline feeds a trained regressor, an eligibility filter and ranker
+sit on top of that forecast, and a PDF report and a grounded counsellor
+both reuse the exact recommendation output rather than recomputing
+anything. See "How it works" below for the walkthrough.
+
+## Quickstart
 
 Backend:
 
 ```
+pip install -r requirements.txt
+cp .env.example .env
 python -m uvicorn api.main:app --port 8000
 ```
 
-Frontend:
+The SQLite database and every trained model artifact (regressor, ranker,
+calibrator, FAISS index) ship with the repo. Nothing needs to be rebuilt.
+Startup loads them once; the API 503s until that finishes, then stays fast.
+
+Frontend, in a second terminal:
 
 ```
 cd frontend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-Startup loads the trained ranker, regressor forecasts, calibrated
-admission-probability artifacts, the similarity FAISS index, and a
-sentence-transformer for the counsellor's semantic retrieval - all once, not
-per request. Endpoints will 503 until this finishes.
+Open the printed local URL. The frontend pulls its own category and state
+options from the backend, so the two can never drift out of sync.
 
-## Rebuilding trained artifacts
+## How it works
 
-These are checked into `models/artifacts/` already; only rerun if the
-underlying data changes:
+**Data pipeline.** A normalization step reconciles six public sources
+(JoSAA round-level cutoffs, NIRF rankings, a hand-maintained fees and
+hostel reference table) into one schema and loads it into SQLite. Postgres
+is a one-env-var swap away for anyone who wants it; the substrate never
+changes what the app computes.
 
-```
-python -m models.cutoff_regressor        # trains the closing-rank regressor
-python -m models.admission_probability   # calibrates admission probability
-python -m models.ranker                  # trains the personalization ranker
-python -m models.similarity              # builds the college-similarity FAISS index
-```
+**Cutoff regressor.** A LightGBM model predicts the year-over-year *change*
+in a college-branch's closing rank, not the raw rank itself. Trees can't
+extrapolate past what they were trained on, so predicting a delta and
+adding it to last year's real number keeps every forecast inside the
+model's trained range. A separate cold-start fallback model covers
+college-branches with too little history for the main one.
 
-## Postgres migration
+**Eligibility and banding.** Given a rank and category, the system resolves
+quota against home state and bands every reachable college-branch safe,
+moderate, or dream based on how much margin the forecast gives you. This
+step decides what you're eligible for; nothing downstream is allowed to
+change that.
 
-Every module reads its database through `db/connection.py` - one
-`get_database_url()`/`get_engine()` pair, keyed on the single `DATABASE_URL`
-env var. Unset, or pointing at the shipped SQLite file, runs on SQLite;
-`postgresql://...` runs on Postgres. Nothing else in the app knows or cares
-which backend is active. This is a substrate swap only - no model, endpoint,
-or output changes with the backend.
+**Personalization ranker.** An LGBMRanker reorders eligible results by fit
+(state, budget, branch taste, NIRF appetite) without ever touching
+eligibility. Its relevance label is built from real revealed preference,
+and closing-rank-derived signals are deliberately excluded from its
+features, so it can't just learn to reconstruct the label from itself.
 
-To move to Postgres:
+**Admission probability.** Isotonic calibration, fit on a held-out
+validation year, corrects a residual-based raw probability. The result is
+rounded to the nearest 5% before it's ever shown, so it never implies more
+precision than the model actually has.
 
-1. Create an empty Postgres database.
-2. Run the migration, pointing `DATABASE_URL` at it (or pass `--target`):
-   ```
-   DATABASE_URL=postgresql://user:pass@host:5432/college_compass python -m db.migrate_to_postgres
-   ```
-   This creates the schema (same tables/columns/keys as SQLite, via the same
-   `db/models.py` definitions - see `db/schema.sql`), loads every row from
-   the shipped SQLite file, and reports per-table row counts before and
-   after. It's idempotent: rerunning it clears each target table and reloads
-   it fresh from SQLite rather than duplicating rows.
-3. Run the parity check before trusting the new backend for anything real:
-   ```
-   python -m db.parity_check --postgres-url postgresql://user:pass@host:5432/college_compass
-   ```
-   This runs the same representative student profiles, counsellor questions,
-   and similarity profile-building through the real application code against
-   both SQLite and the new Postgres database. It asserts every output is
-   identical - row counts, predicted closing ranks, bands, calibrated
-   admission probabilities, and counsellor context records - and exits
-   non-zero on any mismatch. Verified in this environment (no system
-   Postgres or Docker available) using a temporary local Postgres instance
-   for the check - re-run it against your actual target Postgres before
-   relying on the migration there; a different Postgres version or locale is
-   exactly the kind of thing this check exists to catch.
-4. Once parity passes, set `DATABASE_URL` to the Postgres URL for the running
-   app (`api.main`'s startup log prints which backend is active, and
-   `GET /meta` reports `database_backend: "sqlite" | "postgres"`, never the
-   connection string).
+**Grounded counsellor.** The system routes a question to structured lookup
+(a named college, reusing the exact forecast and probability numbers
+`/recommend` already computed) or semantic retrieval (FAISS similarity, for
+fuzzier questions), building a context bundle where every fact carries its
+own source. The language model answers from that bundle, and a code-level
+validator checks every number in the answer against it before the answer
+is ever returned.
 
-To roll back, unset `DATABASE_URL` (or point it back at the SQLite file) and
-restart - SQLite keeps working from the same code, untouched by any of the
-above.
+## Scope and limitations
 
-## API
+Stated plainly, because a hidden limitation is worse than a stated one.
 
-- `GET /health` - readiness check
-- `GET /meta` - known categories/states, the active database backend (`"sqlite"` or `"postgres"`, never the connection string), plus whether the counsellor and an LLM endpoint are configured (presence only, never the value)
-- `POST /recommend` - student profile in, banded eligible college-branches out
-- `GET /similar/{college_id}` - top-5 colleges similar by type, location, ranking, and programs offered (item-to-item, not personalized)
-- `POST /chat` - grounded counsellor: a question (plus optional student profile) in, an answer grounded in the system's own data out, with its source college_ids
-- `POST /report` - same student profile as `/recommend`, returns a downloadable PDF counselling report built from that exact recommendation output
+- **No placement, package, salary, or CTC data, anywhere, ever.** The
+  counsellor declines those questions before they reach the language
+  model. This is a deliberate exclusion, not a gap.
+- **Gender-Neutral seats only.** Female-only supernumerary seats are a
+  real, separate, smaller pool this system doesn't cover.
+- **Forecasts are genuine forecasts.** Any year without a real closing-rank
+  label is evaluated on held-out past years, never on data that doesn't
+  exist yet.
+- **A decision aid, not an official source.** Fees are coarse
+  per-institute-type approximations. Check the institute's current fee
+  circular before making a real decision.
+- **Category rank, not CRL, for reserved categories.** OPEN uses overall
+  rank; EWS/OBC-NCL/SC/ST use category rank, matching how JoSAA actually
+  publishes its own cutoffs.
+- **Grounding checks value membership, not attribution.** The validator
+  confirms a stated number appears somewhere in the real retrieved data,
+  but doesn't yet confirm it's the right *kind* of number for the right
+  college. In a multi-college answer, a genuinely real figure could in
+  principle get attached to the wrong college. Documented in
+  [KNOWN_ISSUES.md](KNOWN_ISSUES.md), not yet hardened.
+- **Large mixed questions can hit provider rate limits.** A counsellor
+  question that both names a college and asks for alternatives can build a
+  context large enough to exceed a free-tier LLM provider's per-minute
+  token cap. The resulting error message doesn't yet distinguish that from
+  a truly dead endpoint.
+- **Don't trust short IIIT aliases for a handful of colleges, until fixed.**
+  Colleges officially named "International Institute of Information
+  Technology" (instead of the more common "Indian Institute of Information
+  Technology") have their short name ("IIIT Bhubaneswar") silently resolve
+  to the wrong, similarly-named IIT. The counsellor's answer is grounded in
+  real data, but it's about the wrong college: ask by full official name
+  for these until the underlying matcher is fixed.
 
-## The grounded counsellor (`/chat`)
+Full detail on all of the above, plus what's already been tested and what
+hasn't, is in [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
 
-The counsellor only states a rank, cutoff, probability, or fee that appears
-verbatim in the context it retrieved for the question - never a fabricated
-number. This is enforced in code, not just prompted:
+## Tech stack
 
-- `models/counsellor_retrieval.py` builds a context bundle from the system's
-  own data. If the question names a college (by full name or a common alias
-  like "IIT Bombay" or "MNIT Jaipur"), it reuses the existing eligibility
-  filter, cutoff regressor forecast, and calibrated admission probability -
-  the same numbers `/recommend` serves. If it doesn't, it falls back to
-  semantic retrieval over the existing similarity FAISS index (the question
-  is embedded at request time; no second index is built). Placement/package
-  questions are declined without ever reaching the LLM.
-- `models/counsellor.py` calls a provider-agnostic OpenAI-compatible chat
-  endpoint (`LLM_ENDPOINT`, `LLM_MODEL`, `LLM_API_KEY` env vars - no vendor
-  hardcoded, defaults to a local Ollama-style endpoint), then re-extracts
-  every number in the model's answer and checks it against the bundle's real
-  values with an exact match. An ungrounded number gets one regeneration
-  attempt with a stricter instruction; if it's still there, it's stripped
-  from the answer rather than shown, and `blocked_ungrounded_figure` is set
-  on the response.
-- If the LLM endpoint isn't reachable, `/chat` returns a clean, honest error
-  - never a fabricated answer.
-
-Run `python -m pytest tests/test_counsellor_grounding.py` to see the
-validator catch and block a fabricated rank, including one test against a
-real unreachable endpoint (no mocking).
-
-To get generated answers instead of the clean unreachable-endpoint message,
-point `LLM_ENDPOINT`/`LLM_MODEL` at a running OpenAI-compatible server
-(Ollama, LM Studio, vLLM, or a hosted provider).
-
-## The PDF counselling report (`/report`)
-
-`api/report_data.py` reshapes the exact dict `/recommend` already returns
-(via a shared `compute_recommendation` function) into a report model - it
-does not recompute eligibility, cutoffs, bands, or probabilities.
-`api/report_pdf.py` renders that model with reportlab. The report includes a
-student-profile header, one table per non-empty band (safe/moderate/dream)
-with predicted closing rank and admission chance, a "next steps" page of
-real JoSAA process facts (multiple rounds, freeze/float/slide, cutoffs vary
-year to year), and a scope footer. Cold-start admission-probability figures
-are marked "(approx.)" in the PDF table, matching the UI's
-approximate-estimate label. No placement or package data appears anywhere in
-the report. PDF metadata (title/author/creator/producer) is set to "College
-Compass" only - no library or vendor name.
+Backend: FastAPI, SQLAlchemy (SQLite locally, Postgres via one env var).
+Machine learning: LightGBM, isotonic calibration, sentence-transformers
+with a FAISS index. PDF: reportlab. Frontend: React, TypeScript, Vite, with
+a hand-authored CSS design system and no UI framework.

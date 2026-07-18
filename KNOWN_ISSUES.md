@@ -77,6 +77,32 @@ The retry-on-ungrounded-number path and answer-quality/naturalness were not
 separately stress-tested beyond the four calls above, since none of the four
 real answers ever contained an ungrounded figure to strip.
 
+## Counsellor college-name matching can resolve "IIIT X" to "IIT X"
+
+Found while capturing README screenshots on 2026-07-18, not a code change
+made in that pass. `models/counsellor_retrieval.py`'s alias generator
+(`_college_aliases`) only recognizes "Indian Institute of Information
+Technology" as the IIIT name prefix. A handful of real IIITs are officially
+named "International Institute of Information Technology" instead (e.g.
+IIIT Bhubaneswar), so no short alias ("iiit bhubaneswar") ever gets
+registered for them - only their full canonical name does.
+
+That gap turns into a wrong match, not just a missed one: `_match_college`
+picks the longest registered alias that appears as a substring of the
+question. "iiit bhubaneswar" (the student's actual question, lowercased)
+contains "iit bhubaneswar" as a substring, which *is* a registered alias -
+for the unrelated Indian Institute of Technology Bhubaneswar. Asking "what's
+the closing rank for CS at IIIT Bhubaneswar" silently resolves to IIT
+Bhubaneswar instead, and the counsellor gives a grounded, data-accurate
+answer about the wrong college.
+
+Not fixed here. A fix needs either a second IIIT prefix ("International
+Institute of Information Technology") in `_INSTITUTE_TYPE_PREFIX`, or a
+word-boundary check in `_match_college` instead of plain substring
+containment, so "iiit" never silently matches on an "iit" substring. Small,
+contained fix, but changes matching behavior for every question, so it
+deserves its own pass with test coverage rather than a drive-by edit.
+
 ## Postgres schema has no indexes beyond the ones SQLAlchemy creates for PK/FK
 
 The SQLite-to-Postgres migration (`db/migrate_to_postgres.py`) is a straight
