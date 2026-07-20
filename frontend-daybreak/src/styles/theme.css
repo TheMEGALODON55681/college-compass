@@ -1,0 +1,41 @@
+/* Design tokens as CSS custom properties. Mirrors lib/tokens.ts exactly -
+   see Design.md for the source values. lib/tokens.ts is what the screens
+   actually read from; these variables exist for any plain-CSS use. */
+:root {
+  --paper: #FBFAF6;
+  --surface: #FFFFFF;
+  --line: #E8E5DE;
+  --ink-900: #14213D;
+  --ink-700: #2B3452;
+  --ink-500: #5A6480;
+  --ink-300: #9AA2B8;
+
+  --primary: #2A5FC0;
+  --primary-hover: #1E4A99;
+  --primary-tint: #EAF0FB;
+  --primary-light: #7FB3E8;
+  --on-primary: #FFFFFF;
+
+  --signature: #6C5CE0;
+  --signature-tint: #EEEBFB;
+
+  --wash-warm: #FCEFE6;
+  --wash-cool: #EEF1FC;
+
+  --likely-solid: #1B9C6B;
+  --likely-tint: #E4F4EC;
+  --likely-text: #0E6B47;
+
+  --fair-solid: #C67F14;
+  --fair-tint: #FBF0DA;
+  --fair-text: #8A570A;
+
+  --reach-solid: #D0563C;
+  --reach-tint: #FBE8E2;
+  --reach-text: #983320;
+
+  --radius-card: 14px;
+  --radius-control: 10px;
+  --radius-chip: 8px;
+  --radius-pill: 999px;
+}

@@ -16,3 +16,10 @@ data/processed/
 .vite/
 .planning/
 graphify-out/
+
+.claude/
+CLAUDE.md
+Memory.md
+.mcp.json
+.codex/
+.planning/
