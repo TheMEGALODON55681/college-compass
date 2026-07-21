@@ -190,6 +190,18 @@ export function formatLocation(college: Pick<College, "city" | "state">): string
   return parts.length ? parts.join(", ") : null;
 }
 
+// /chat's source_college_ids are raw slugs (e.g.
+// "indian-institute-of-technology-bombay"), never a friendly label. Look the
+// name up from this session's own results first - real, on-page data - and
+// only fall back to a readable formatting of the slug itself when the id
+// isn't among them (a college outside this session, or no session at all).
+// Never a decorative label.
+export function collegeNameFromId(collegeId: string, colleges: College[] = []): string {
+  const match = colleges.find((c) => c.collegeId === collegeId);
+  if (match) return match.name;
+  return collegeId.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+}
+
 export function adaptCollegeResults(response: RecommendResponse, form: RankCardForm, studentRank: number): College[] {
   const bands: Band[] = ["safe", "moderate", "dream"];
   const colleges: College[] = [];
