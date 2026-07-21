@@ -16,6 +16,7 @@ export default defineConfig({
       "/report": BACKEND,
       "/meta": BACKEND,
       "/similar": BACKEND,
+      "/cutoffs": BACKEND,
       "/health": BACKEND,
     },
   },

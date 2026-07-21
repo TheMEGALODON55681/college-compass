@@ -11,6 +11,13 @@ export interface College {
   status: Tier;
   closingRank: number;
   why: string; // plain, respectful, human
+  // Raw ids and quota, kept alongside the composed `id` so the College
+  // detail screen can call /cutoffs and /similar/{id} without parsing them
+  // back out of `id`. Optional: illustrative mock cards (Landing's sample
+  // preview) never navigate to a live detail fetch, so they don't set these.
+  collegeId?: string;
+  programId?: string;
+  quotaUsed?: string;
 }
 
 export interface Student {

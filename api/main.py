@@ -26,12 +26,13 @@ from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from sentence_transformers import SentenceTransformer
+from sqlalchemy import text
 from typing import Literal, Optional
 
 from api.eligibility import StudentProfile, build_forecasts, load_reference_tables, merge_forecasts_with_colleges
 from api.report_data import build_report_data
 from api.report_pdf import render_report_pdf
-from db.connection import get_backend_name, get_database_url, redact_database_url
+from db.connection import get_backend_name, get_database_url, get_engine, redact_database_url
 from models.admission_probability import load_artifacts as load_probability_artifacts, predict_admission_probability
 from models.counsellor import generate_answer
 from models.counsellor_retrieval import build_context_bundle, build_lookup_cache
@@ -266,6 +267,67 @@ def similar(college_id: str):
     index, metadata = similarity_bundle
     neighbours = get_similar_colleges(college_id, index, metadata, k=SIMILAR_TOP_K)
     return {"college_id": college_id, "similar": neighbours, "note": SIMILAR_NOTE}
+
+
+# Female-only seats are never modeled anywhere in this product (see
+# models/regressor_dataset.py) - excluded here too, so the trend chart never
+# shows a quota line the student was never scored against. Pre-2018 rows
+# (JoSAA didn't gender-split reporting yet) apply to everyone and stay in.
+FEMALE_ONLY_GENDER_SEAT_TYPE = "Female-only (including Supernumerary)"
+
+
+def get_cutoff_history(college_id: str, program_id: str, category: str, quota: str, database_url=None):
+    """Straight, read-only lookup against the existing cutoffs table for the
+    College detail chart - no recompute, no ML. An unknown combination just
+    comes back empty; the frontend shows that honestly rather than as an error.
+
+    JoSAA reports a closing rank per round (1 through 6 or 7 most years), so
+    a raw per-row pull returns several points per year - a jagged mess, not a
+    trend. This keeps only the last round each year (the settled closing
+    rank), treating a null round (2023+ rows, reported without a round
+    breakdown) as already final rather than as round zero.
+    """
+    engine = get_engine(database_url)
+    query = text(
+        """
+        WITH ranked AS (
+            SELECT year, closing_rank,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY year
+                       ORDER BY (round IS NULL) ASC, round DESC
+                   ) AS rn
+            FROM cutoffs
+            WHERE college_id = :college_id
+              AND program_id = :program_id
+              AND category = :category
+              AND quota = :quota
+              AND gender_seat_type != :excluded_gender
+        )
+        SELECT year, closing_rank FROM ranked WHERE rn = 1 ORDER BY year
+        """
+    )
+    with engine.connect() as conn:
+        rows = conn.execute(
+            query,
+            {
+                "college_id": college_id,
+                "program_id": program_id,
+                "category": category,
+                "quota": quota,
+                "excluded_gender": FEMALE_ONLY_GENDER_SEAT_TYPE,
+            },
+        ).fetchall()
+    return [{"year": int(row.year), "closing_rank": int(row.closing_rank)} for row in rows]
+
+
+@app.get("/cutoffs")
+def cutoffs(college_id: str, program_id: str, category: str, quota: str):
+    """Year-over-year closing-rank history for one college, branch, category,
+    and quota - feeds the College detail trend chart. The only backend
+    endpoint added for the frontend swap; everything else already existed.
+    """
+    history = get_cutoff_history(college_id, program_id, category, quota)
+    return {"college_id": college_id, "program_id": program_id, "category": category, "quota": quota, "history": history}
 
 
 class ChatRequest(BaseModel):

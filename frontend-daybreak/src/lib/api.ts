@@ -80,6 +80,19 @@ export interface SimilarResponse {
   note: string;
 }
 
+export interface CutoffHistoryPoint {
+  year: number;
+  closing_rank: number;
+}
+
+export interface CutoffHistoryResponse {
+  college_id: string;
+  program_id: string;
+  category: string;
+  quota: string;
+  history: CutoffHistoryPoint[];
+}
+
 interface ApiErrorBody {
   detail: string | { msg: string; loc: (string | number)[] }[];
 }
@@ -137,6 +150,11 @@ export function askCounsellor(request: ChatRequest): Promise<ChatResponse> {
 
 export function fetchSimilarColleges(collegeId: string): Promise<SimilarResponse> {
   return getJson<SimilarResponse>(`/similar/${encodeURIComponent(collegeId)}`);
+}
+
+export function fetchCutoffHistory(collegeId: string, programId: string, category: string, quota: string): Promise<CutoffHistoryResponse> {
+  const params = new URLSearchParams({ college_id: collegeId, program_id: programId, category, quota });
+  return getJson<CutoffHistoryResponse>(`/cutoffs?${params.toString()}`);
 }
 
 export async function fetchReportPdf(request: RecommendRequest): Promise<Blob> {

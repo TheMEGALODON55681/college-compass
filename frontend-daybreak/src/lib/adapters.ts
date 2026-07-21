@@ -121,6 +121,14 @@ function quotaClause(quota: string): string {
   return "through the all-India quota";
 }
 
+// Short label form of the same three quotas, for the detail chart's context
+// line rather than a full sentence clause.
+export function quotaLabel(quota: string): string {
+  if (quota === "HS") return "Home state";
+  if (quota === "OS") return "Other state";
+  return "All India";
+}
+
 // band and admission_probability are independent models and can disagree at
 // the edges (.planning/Design.md). Reconcile that in plain words instead of
 // hiding it when the gap is large enough to matter.
@@ -169,6 +177,9 @@ function toCollege(row: CollegeResult, studentRank: number): College {
     status: BAND_TO_TIER[row.band],
     closingRank: row.predicted_closing_rank,
     why: buildWhy(row, studentRank),
+    collegeId: row.college_id,
+    programId: row.program_id,
+    quotaUsed: row.quota_used,
   };
 }
 
