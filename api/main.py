@@ -16,6 +16,7 @@ and ranker, exactly as they exist.
 import os
 import re
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -24,6 +25,8 @@ load_dotenv()
 import pandas as pd
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sentence_transformers import SentenceTransformer
 from sqlalchemy import text
@@ -364,3 +367,26 @@ def chat(request: ChatRequest):
         "source_college_ids": result["source_college_ids"],
         "blocked_ungrounded_figure": result["blocked_ungrounded_figure"],
     }
+
+
+# Serves the built frontend (`npm run build` in frontend/) when it exists, so
+# a single `uvicorn` process can serve the whole app in production. In local
+# dev, frontend/dist doesn't exist (the Vite dev server runs separately on
+# its own port), so this stays inert and doesn't interfere with that setup.
+FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+
+if FRONTEND_DIST.is_dir():
+    frontend_assets = FRONTEND_DIST / "assets"
+    if frontend_assets.is_dir():
+        app.mount("/assets", StaticFiles(directory=frontend_assets), name="frontend-assets")
+
+    @app.get("/{full_path:path}")
+    def serve_frontend(full_path: str):
+        """Any real static file (favicon, manifest) is served directly;
+        anything else is a client-side route, so index.html handles it and
+        react-router takes over - same fallback the Vite dev proxy does.
+        """
+        candidate = FRONTEND_DIST / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(FRONTEND_DIST / "index.html")

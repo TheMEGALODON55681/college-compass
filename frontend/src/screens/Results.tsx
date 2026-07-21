@@ -112,14 +112,16 @@ export function Results() {
                   <Download size={16} /> Download report
                 </button>
               )}
-              <button onClick={() => setPreviewCare(!previewCare)} style={{
-                fontFamily: fMono, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase",
-                color: previewCare ? C.signature : C.ink300, background: "transparent",
-                border: `1px solid ${previewCare ? C.signature : C.line}`,
-                borderRadius: 8, padding: "6px 12px", cursor: "pointer", minHeight: 44,
-              }}>
-                {previewCare ? "Exit care state" : "Preview care state"}
-              </button>
+              {import.meta.env.DEV && (
+                <button onClick={() => setPreviewCare(!previewCare)} style={{
+                  fontFamily: fMono, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase",
+                  color: previewCare ? C.signature : C.ink500, background: "transparent",
+                  border: `1px solid ${previewCare ? C.signature : C.line}`,
+                  borderRadius: 8, padding: "6px 12px", cursor: "pointer", minHeight: 44,
+                }}>
+                  {previewCare ? "Exit care state" : "Preview care state"}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -132,7 +134,7 @@ export function Results() {
         borderBottom: `1px solid ${C.line}`, padding: "10px 24px",
       }}>
         <div style={{ maxWidth: 1160, margin: "0 auto", display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ fontFamily: fMono, fontSize: 10, color: C.ink300, letterSpacing: "0.08em", textTransform: "uppercase", marginRight: 4 }}>Filter:</span>
+          <span style={{ fontFamily: fMono, fontSize: 10, color: C.ink500, letterSpacing: "0.08em", textTransform: "uppercase", marginRight: 4 }}>Filter:</span>
           {(["all", "likely", "fair", "reach"] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)} style={{
               fontFamily: fBody, fontSize: 13, fontWeight: 500,
@@ -150,7 +152,7 @@ export function Results() {
 
       {/* Result groups */}
       <div style={{ maxWidth: 1160, margin: "0 auto", padding: mobile ? "28px 16px 100px" : "36px 24px 80px" }}>
-        {showingCare && <CareStateBlock onCounsellor={() => navigate("/counsellor")} />}
+        {showingCare && <CareStateBlock onCounsellor={() => navigate("/counsellor")} hasFairChance={fair.length > 0} />}
         {(filter === "all" || filter === "likely") && (
           <ResultGroup
             title="Likely" subtitle="Colleges you can realistically count on"

@@ -27,7 +27,7 @@ export function ResultGroup({ title, subtitle, count, colleges, onDetail, baseIn
         </div>
         <p style={{ fontFamily: fBody, fontSize: 14, color: C.ink500, margin: 0 }}>{subtitle}</p>
         {colleges.length < count && (
-          <p style={{ fontFamily: fMono, fontSize: 11, color: C.ink300, letterSpacing: "0.04em", margin: "6px 0 0" }}>
+          <p style={{ fontFamily: fMono, fontSize: 11, color: C.ink500, letterSpacing: "0.04em", margin: "6px 0 0" }}>
             Showing your top {colleges.length} of {count}, ordered by fit for you.
           </p>
         )}

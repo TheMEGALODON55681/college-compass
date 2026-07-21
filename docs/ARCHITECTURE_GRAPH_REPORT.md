@@ -62,15 +62,15 @@
 - None detected.
 
 ## Hyperedges (group relationships)
-- **DB connection module adopted as single source of truth by every backend-touching caller** — db_connection_get_database_url, db_connection_get_engine, db_connection_get_backend_name, db_connection_redact_database_url, api_eligibility_load_reference_tables, data_pipeline_build_dataset_run, db_migrate_to_postgres_migrate, db_parity_check_build_environment [EXTRACTED 1.00]
-- **Eligibility forecast-to-band candidate pipeline** — api_eligibility_build_forecasts, api_eligibility_load_reference_tables, api_eligibility_merge_forecasts_with_colleges, api_eligibility_select_best_quota_rows, api_eligibility_get_eligible_colleges [INFERRED 0.85]
-- **PDF report reuses /recommend's exact computed output, nothing recomputed** — api_main_report, api_main_compute_recommendation, api_report_data_build_report_data, api_report_pdf_render_report_pdf [EXTRACTED 1.00]
-- **Student profile to ranked recommendation flow** — frontend_src_components_studentform_studentform, frontend_src_app_handlesubmit, frontend_src_api_client_fetchrecommendation, frontend_src_components_resultsview_resultsview [INFERRED 0.85]
-- **Personalized grounded-counsellor chat flow** — frontend_src_app_app, frontend_src_components_chatpanel_chatpanel, frontend_src_components_chatpanel_handleask, frontend_src_api_client_askcounsellor [INFERRED 0.85]
-- **Diamond compass mark visual identity** — frontend_public_favicon, frontend_src_app_appmark, frontend_index [INFERRED 0.75]
-- **Temporal Leakage Discipline Across Regressor, Probability Calibration, and Ranker** — models_cutoff_regressor_run, models_admission_probability_run, models_ranker_run [INFERRED 0.85]
-- **Grounded Counsellor Honesty Enforcement Pipeline** — models_counsellor_retrieval_build_context_bundle, models_counsellor_generate_answer, models_counsellor_validate_grounding, tests_test_counsellor_grounding_test_generate_answer_blocks_fabricated_number_when_retry_still_fabricates [EXTRACTED 1.00]
-- **Cutoff Regressor Production Artifact Bundle** — models_cutoff_regressor_save_artifacts, models_artifacts_delta_model, models_artifacts_fallback_model, models_artifacts_metadata [EXTRACTED 1.00]
+- **DB connection module adopted as single source of truth by every backend-touching caller** - db_connection_get_database_url, db_connection_get_engine, db_connection_get_backend_name, db_connection_redact_database_url, api_eligibility_load_reference_tables, data_pipeline_build_dataset_run, db_migrate_to_postgres_migrate, db_parity_check_build_environment [EXTRACTED 1.00]
+- **Eligibility forecast-to-band candidate pipeline** - api_eligibility_build_forecasts, api_eligibility_load_reference_tables, api_eligibility_merge_forecasts_with_colleges, api_eligibility_select_best_quota_rows, api_eligibility_get_eligible_colleges [INFERRED 0.85]
+- **PDF report reuses /recommend's exact computed output, nothing recomputed** - api_main_report, api_main_compute_recommendation, api_report_data_build_report_data, api_report_pdf_render_report_pdf [EXTRACTED 1.00]
+- **Student profile to ranked recommendation flow** - frontend_src_components_studentform_studentform, frontend_src_app_handlesubmit, frontend_src_api_client_fetchrecommendation, frontend_src_components_resultsview_resultsview [INFERRED 0.85]
+- **Personalized grounded-counsellor chat flow** - frontend_src_app_app, frontend_src_components_chatpanel_chatpanel, frontend_src_components_chatpanel_handleask, frontend_src_api_client_askcounsellor [INFERRED 0.85]
+- **Diamond compass mark visual identity** - frontend_public_favicon, frontend_src_app_appmark, frontend_index [INFERRED 0.75]
+- **Temporal Leakage Discipline Across Regressor, Probability Calibration, and Ranker** - models_cutoff_regressor_run, models_admission_probability_run, models_ranker_run [INFERRED 0.85]
+- **Grounded Counsellor Honesty Enforcement Pipeline** - models_counsellor_retrieval_build_context_bundle, models_counsellor_generate_answer, models_counsellor_validate_grounding, tests_test_counsellor_grounding_test_generate_answer_blocks_fabricated_number_when_retry_still_fabricates [EXTRACTED 1.00]
+- **Cutoff Regressor Production Artifact Bundle** - models_cutoff_regressor_save_artifacts, models_artifacts_delta_model, models_artifacts_fallback_model, models_artifacts_metadata [EXTRACTED 1.00]
 
 ## Communities (27 total, 1 thin omitted)
 
@@ -165,7 +165,7 @@ Nodes (4): build_forecasts(), _demo(), Concrete verification: a few real student
 ## Knowledge Gaps
 - **74 isolated node(s):** `$schema`, `typescript`, `oxc`, `react/rules-of-hooks`, `warn` (+69 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **1 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **1 thin communities (<3 nodes) omitted from report** - run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_

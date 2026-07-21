@@ -10,7 +10,7 @@ const NEXT_STEPS = [
 ];
 
 // Shown when likely.length === 0. The warmest screen in the product, not the bleakest.
-export function CareStateBlock({ onCounsellor }: { onCounsellor: () => void }) {
+export function CareStateBlock({ onCounsellor, hasFairChance }: { onCounsellor: () => void; hasFairChance: boolean }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -29,7 +29,10 @@ export function CareStateBlock({ onCounsellor }: { onCounsellor: () => void }) {
         You have real options here. Let us start with your strongest ones, then look at what else is worth trying.
       </h2>
       <p style={{ fontFamily: fBody, fontSize: 16, color: C.ink700, lineHeight: 1.72, marginBottom: 28 }}>
-        Your rank gives you genuine Fair chance options at good NITs. The colleges below are worth locking in seriously - not as fallbacks, but as real seats that students with your rank land. There is also a path forward through later rounds and other routes.
+        {hasFairChance
+          ? "Your rank gives you genuine Fair chance options at good NITs. The colleges below are worth locking in seriously - not as fallbacks, but as real seats that students with your rank land. There is also a path forward through later rounds and other routes."
+          : "Your strongest options this year sit in the Reach tier below - a real shot, not a guarantee, and worth taking seriously. It is not the end of the road: later rounds and other routes are still ahead."
+        }
       </p>
 
       <div style={{ fontFamily: fMono, fontSize: 10, color: C.ink500, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>

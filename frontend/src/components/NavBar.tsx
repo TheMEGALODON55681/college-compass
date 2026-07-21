@@ -79,8 +79,8 @@ export function NavBar() {
         }}>
           {isLanding && (
             <>
-              <a href="#how" style={{ fontFamily: fBody, fontSize: 16, color: C.ink700, textDecoration: "none", padding: "8px 0" }} onClick={() => setOpen(false)}>How it works</a>
-              <a href="#preview" style={{ fontFamily: fBody, fontSize: 16, color: C.ink700, textDecoration: "none", padding: "8px 0" }} onClick={() => setOpen(false)}>Colleges</a>
+              <a href="#how" style={{ fontFamily: fBody, fontSize: 16, color: C.ink700, textDecoration: "none", display: "flex", alignItems: "center", minHeight: 44 }} onClick={() => setOpen(false)}>How it works</a>
+              <a href="#preview" style={{ fontFamily: fBody, fontSize: 16, color: C.ink700, textDecoration: "none", display: "flex", alignItems: "center", minHeight: 44 }} onClick={() => setOpen(false)}>Colleges</a>
             </>
           )}
           {!isCounsellor && (

@@ -49,14 +49,14 @@ export function MiniRankCard() {
               borderBottom: i < MINI_RANK_CARD_FIELDS.length - 1 ? `1px solid ${C.line}` : "none",
             }}
           >
-            <span style={{ fontFamily: fMono, fontSize: 10, color: C.ink300, letterSpacing: "0.08em", textTransform: "uppercase" }}>{f.label}</span>
+            <span style={{ fontFamily: fMono, fontSize: 10, color: C.ink500, letterSpacing: "0.08em", textTransform: "uppercase" }}>{f.label}</span>
             <span style={{ fontFamily: f.label === "CRL Rank" ? fMono : fBody, fontSize: 13, fontWeight: 600, color: C.ink900 }}>{f.value}</span>
           </motion.div>
         ))}
       </div>
 
       <div style={{ padding: "14px 22px" }}>
-        <div style={{ fontFamily: fMono, fontSize: 10, color: C.ink300, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>Your matches</div>
+        <div style={{ fontFamily: fMono, fontSize: 10, color: C.ink500, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>Your matches</div>
         {MINI_RANK_CARD_DEMOS.map((d, i) => (
           <motion.div
             key={d.name + d.branch}

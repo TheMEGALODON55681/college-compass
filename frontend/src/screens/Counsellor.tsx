@@ -89,7 +89,7 @@ export function Counsellor() {
                   Ask about cutoffs, branches, rounds, or anything about your shortlist.
                 </p>
               </div>
-              <div style={{ fontFamily: fMono, fontSize: 10, color: C.ink300, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>Try asking</div>
+              <div style={{ fontFamily: fMono, fontSize: 10, color: C.ink500, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 12 }}>Try asking</div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 32 }}>
                 {STARTERS.map(q => (
                   <button key={q} onClick={() => send(q)} disabled={typing} style={{

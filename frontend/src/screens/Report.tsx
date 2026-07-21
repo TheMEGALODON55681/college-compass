@@ -167,7 +167,7 @@ export function Report() {
 
             {state === "error" && <InlineError message={errorMessage} />}
 
-            <p style={{ fontFamily: fBody, fontSize: 13, color: C.ink300, textAlign: "center", marginTop: 12, marginBottom: 0 }}>
+            <p style={{ fontFamily: fBody, fontSize: 13, color: C.ink500, textAlign: "center", marginTop: 12, marginBottom: 0 }}>
               PDF format · 5 pages · No account needed
             </p>
           </>
