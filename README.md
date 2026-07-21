@@ -32,22 +32,22 @@ prompt:
 ## Screenshots
 
 *Not yet captured. Run the app locally (`python -m uvicorn api.main:app --port 8000`
-and, in another terminal, `cd frontend && npm run dev`), submit rank
-`15000`, category `OPEN`, home state `Uttar Pradesh` with "prefer home
-state" checked, and branch preference `CS-adjacent`. That profile naturally
-produces both a confident and a cold-start result near the top of the safe
-band. Drop the five images at the paths below with those exact filenames
-and the table in this section's source will render.*
+and, in another terminal, `cd frontend && npm run dev`), then submit rank
+`12480`, category `General`, home state `Delhi` on the rank card. That's the
+same example profile the landing page's own sample shortlist uses, and it
+naturally produces a mix of likely, fair chance, and reach results. Drop the
+six images at the paths below with those exact filenames and the table in
+this section's source will render.*
 
 <!--
 | | |
 |---|---|
-| ![Student form filled in](docs/screenshots/student-form.png) | ![Banded results with confidence meters](docs/screenshots/banded-results.png) |
-| The student form | Safe / moderate / dream results, one solid confidence bar and one hatched cold-start bar |
-| ![Similar colleges expanded](docs/screenshots/similar-colleges.png) | ![Counsellor answering with sources](docs/screenshots/counsellor-answer.png) |
-| Similar colleges, expanded on a card | The counsellor answering a grounded question, with source chips |
-| ![Downloaded PDF report](docs/screenshots/pdf-report.png) | |
-| The downloaded PDF report | |
+| ![Landing page hero](docs/screenshots/landing.png) | ![Rank card input form](docs/screenshots/rank-card.png) |
+| The landing page, with the animated sample shortlist | The rank card, styled as an official document |
+| ![Banded results with probability meters](docs/screenshots/results.png) | ![College detail with cutoff trend](docs/screenshots/college-detail.png) |
+| Likely / fair chance / reach results, each with an animated probability meter | Cutoff trend, similar colleges, and the why-this-chance explanation |
+| ![Counsellor answering with sources](docs/screenshots/counsellor.png) | ![Downloaded PDF report](docs/screenshots/report.png) |
+| The counsellor answering a grounded question, with source chips | The report screen and its downloaded PDF |
 -->
 
 ## Architecture, mapped
@@ -57,7 +57,7 @@ powers:
 
 ```mermaid
 flowchart TD
-    A[Student form: rank + category] --> B[POST /recommend]
+    A[Rank card form: rank + category] --> B[POST /recommend]
     B --> C[Eligibility filter over regressor forecast]
     C --> D[Ranker reorder]
     D --> E[Banded results: safe / moderate / dream]
@@ -74,7 +74,9 @@ A separate auto-generated dependency graph covers module-level coupling
 instead of request flow: 500 nodes and 983 edges across 27 communities,
 pulled straight from the source with AST parsing plus semantic extraction,
 zero import cycles. Use it to audit coupling, not to follow the request
-flow above. The SVG is at
+flow above. It predates the current frontend, so its backend and data
+pipeline nodes hold up but its frontend-side nodes describe the previous
+UI, due for a refresh. The SVG is at
 [docs/architecture-graph.svg](docs/architecture-graph.svg), an interactive
 version at [docs/architecture-graph.html](docs/architecture-graph.html),
 and the full audit is in
@@ -103,8 +105,25 @@ cp .env.example .env
 npm run dev
 ```
 
-Open the printed local URL. The frontend pulls its own category and state
-options from the backend, so the two can never drift out of sync.
+Open the printed local URL (`http://localhost:5173` by default). The
+frontend pulls its own category and state options from the backend, so the
+two can never drift out of sync.
+
+`VITE_API_BASE` (in `frontend/.env`) is the backend's origin. Leave it blank
+for local dev: every API call goes through the Vite dev server's own proxy
+(`frontend/vite.config.ts`), which forwards the backend's root-mounted paths
+(`/recommend`, `/chat`, `/report`, `/meta`, `/similar`, `/cutoffs`,
+`/health`) to `http://localhost:8000`, so the browser never hits a CORS
+wall. Set `VITE_API_BASE` to the real backend's origin only when the
+frontend is built and served from somewhere the proxy can't reach, for
+example a separately hosted static build.
+
+For production, the simplest path is one process: run
+`npm run build` inside `frontend/`, and the backend serves the result
+directly, static assets and all, the moment `frontend/dist` exists. No
+second server or reverse proxy needed. Hosting the frontend separately
+works too. Either way, `CORS_ORIGINS` and `VITE_API_BASE` are the only two
+settings that change.
 
 ## How it works
 
@@ -190,5 +209,7 @@ hasn't, is in [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
 
 Backend: FastAPI, SQLAlchemy (SQLite locally, Postgres via one env var).
 Machine learning: LightGBM, isotonic calibration, sentence-transformers
-with a FAISS index. PDF: reportlab. Frontend: React, TypeScript, Vite, with
-a hand-authored CSS design system and no UI framework.
+with a FAISS index. PDF: reportlab. Frontend: React 18, TypeScript, Vite,
+react-router for routing, motion for animation, recharts for the cutoff
+chart, lucide-react for icons, and a hand-authored CSS-variable design
+system with no component framework.
