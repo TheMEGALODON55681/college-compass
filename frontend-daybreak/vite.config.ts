@@ -13,7 +13,17 @@ export default defineConfig({
     proxy: {
       "/recommend": BACKEND,
       "/chat": BACKEND,
-      "/report": BACKEND,
+      // "/report" is also the frontend's own route (Architecture.md), so only
+      // POST (the real PDF download call) proxies to the backend. A GET - a
+      // full page load or refresh on /report - bypasses so Vite's own SPA
+      // fallback serves the app instead of hitting the POST-only backend
+      // endpoint and 405ing.
+      "/report": {
+        target: BACKEND,
+        bypass: (req) => {
+          if (req.method !== "POST") return req.url;
+        },
+      },
       "/meta": BACKEND,
       "/similar": BACKEND,
       "/cutoffs": BACKEND,
