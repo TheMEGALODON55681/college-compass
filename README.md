@@ -31,24 +31,19 @@ prompt:
 
 ## Screenshots
 
-*Not yet captured. Run the app locally (`python -m uvicorn api.main:app --port 8000`
-and, in another terminal, `cd frontend && npm run dev`), then submit rank
-`12480`, category `General`, home state `Delhi` on the rank card. That's the
-same example profile the landing page's own sample shortlist uses, and it
-naturally produces a mix of likely, fair chance, and reach results. Drop the
-six images at the paths below with those exact filenames and the table in
-this section's source will render.*
+Captured against the live app and a real backend, rank `12480`, category
+`General`, home state `Delhi`. That's the same example profile the landing
+page's own sample shortlist uses, and it returns a real mix of results: 586
+likely, 54 fair chance, 32 reach.
 
-<!--
 | | |
 |---|---|
 | ![Landing page hero](docs/screenshots/landing.png) | ![Rank card input form](docs/screenshots/rank-card.png) |
-| The landing page, with the animated sample shortlist | The rank card, styled as an official document |
+| The landing page hero, with the sample admit card fully assembled and its probability meters filled in | The rank card filled in with the example profile, before submit |
 | ![Banded results with probability meters](docs/screenshots/results.png) | ![College detail with cutoff trend](docs/screenshots/college-detail.png) |
-| Likely / fair chance / reach results, each with an animated probability meter | Cutoff trend, similar colleges, and the why-this-chance explanation |
-| ![Counsellor answering with sources](docs/screenshots/counsellor.png) | ![Downloaded PDF report](docs/screenshots/report.png) |
-| The counsellor answering a grounded question, with source chips | The report screen and its downloaded PDF |
--->
+| Likely, fair chance, and reach results for that profile, each with a real admission probability | The admission probability header and the nine-year cutoff trend for a likely match |
+| ![Counsellor answering with sources](docs/screenshots/counsellor.png) | ![The report screen and its download button](docs/screenshots/report.png) |
+| The counsellor answering a real cutoff question, sourced to the exact college it cites | The report screen, with the shortlist summary and a completed PDF download |
 
 ## Architecture, mapped
 
