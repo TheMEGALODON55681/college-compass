@@ -30,6 +30,36 @@ core grounding check - a product invariant - so it needs a deliberate pass
 with its own test coverage, not a quiet change folded into a deploy-readiness
 phase.
 
+## Strip-and-retry can mangle a legitimate number that shares digits with an ungrounded one
+
+`_strip_ungrounded` (`models/counsellor.py`) removes an ungrounded number by
+running `re.sub(re.escape(n), "[figure not available in the system's
+data]", stripped)` for each ungrounded number `n` across the entire answer
+text, not just the specific spot where it appeared. If a short ungrounded
+number is also a substring of an unrelated, correctly-grounded number
+elsewhere in the same answer, that unrelated number gets corrupted too,
+even though it individually passed `validate_grounding`.
+
+Concretely, seen in the captured Phase 0 baseline
+(`tests/fixtures/baseline/chat_semantic_fuzzy.json`): the model's answer
+used a markdown numbered list ("1. Check your own rank... 2. Compare your
+rank... 3. Decide which specialisation..."). `extract_numbers` correctly
+flags the bare list markers 1, 2, 3 as ungrounded - they are not real
+system values. But 2 is also a substring of the real, grounded forecast
+year 2025, and 3 is a substring of several real, grounded closing ranks
+(39655, 39676, 30755). Stripping 2 and 3 globally turned 2025 into
+"[figure not available in the system's data]0[figure not available in the
+system's data]5" and 39655 into "[figure not available in the system's
+data]9655" in the final answer - both were genuine, grounded numbers
+before the strip pass ran.
+
+Not fixed here - stripping is meant to run after grounding has already
+been decided, so a fix needs to replace only the specific occurrence
+flagged as ungrounded (by span, not by global substring), not touch every
+other digit-match in the text. That is a targeted change to
+`_strip_ungrounded`, worth its own pass with test coverage rather than a
+drive-by edit inside a deploy-focused phase.
+
 ## Grounded counsellor's context can exceed a free-tier provider's per-minute token limit
 
 Verified against a real hosted LLM (Groq, `openai/gpt-oss-120b`) on

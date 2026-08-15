@@ -2,3 +2,4 @@
 *.joblib binary
 *.faiss binary
 models/artifacts/*.txt -text
+models/artifacts/onnx_encoder/** -text

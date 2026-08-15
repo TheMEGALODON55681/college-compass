@@ -90,6 +90,9 @@ python -m uvicorn api.main:app --port 8000
 The SQLite database and every trained model artifact (regressor, ranker,
 calibrator, FAISS index) ship with the repo. Nothing needs to be rebuilt.
 Startup loads them once; the API 503s until that finishes, then stays fast.
+One exception: the counsellor's text encoder loads on the first semantic
+question instead of at startup, so that first question is slower than the
+ones after it.
 
 Frontend, in a second terminal:
 
@@ -203,8 +206,8 @@ hasn't, is in [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
 ## Tech stack
 
 Backend: FastAPI, SQLAlchemy (SQLite locally, Postgres via one env var).
-Machine learning: LightGBM, isotonic calibration, sentence-transformers
-with a FAISS index. PDF: reportlab. Frontend: React 18, TypeScript, Vite,
-react-router for routing, motion for animation, recharts for the cutoff
-chart, lucide-react for icons, and a hand-authored CSS-variable design
-system with no component framework.
+Machine learning: LightGBM, isotonic calibration, an ONNX Runtime encoder
+(all-MiniLM-L6-v2) with a FAISS index. PDF: reportlab. Frontend: React 18,
+TypeScript, Vite, react-router for routing, motion for animation, recharts
+for the cutoff chart, lucide-react for icons, and a hand-authored
+CSS-variable design system with no component framework.
