@@ -1,0 +1,56 @@
+{
+  "request": {
+    "question": "What are some good CS options near my rank?",
+    "student_profile": {
+      "jee_rank": 8000,
+      "category": "OPEN"
+    }
+  },
+  "response": {
+    "answer": "Here are the Computer‑Science‑related programmes that appear in the current JoSAA‑forecast data, together with their **predicted closing ranks for [figure not available in the system's data]0[figure not available in the system's data]5 (AI quota, OPEN category)**, the **eligibility band**, and the **calibrated admission probability**:\n\n| Institute (college_id) | Programme (as listed) | Predicted closing rank | Eligibility band | Admission probability |\n|------------------------|-----------------------|------------------------|-------------------|-----------------------|\n| **indian‑institute‑of‑information‑technology‑agartala** | Computer Science and Engineering | [figure not available in the system's data]9655 | safe | 0.95 |\n| **indian‑institute‑of‑information‑technology‑iiit‑vadodara‑gujrat** | Computer Science and Engineering | [figure not available in the system's data][figure not available in the system's data]965 | safe | 0.95 |\n| **indian‑institute‑of‑information‑technology‑bhagalpur** | Computer Science and Engineering | [figure not available in the system's data]9676 | safe | 0.95 |\n| **indian‑institute‑of‑information‑technology‑bhopal** | Computer Science and Engineering (Cyber Physical System) | [figure not available in the system's data]0755 | safe | 0.95 |\n| **indian‑institute‑of‑information‑technology‑bhopal** | Computer Science and Engineering (Cyber Security) | [figure not available in the system's data]7958 | safe | 0.95 |\n| **indian‑institute‑of‑information‑technology‑bhopal** | Computer Science and Engineering (Data Science) | [figure not available in the system's data]44[figure not available in the system's data]5 | safe | 0.95 |\n\nAll of the above programmes are marked **“safe”** in the eligibility band and have a calibrated admission probability of **0.95**, meaning that, according to the model, a candidate whose rank falls within the predicted closing‑rank range has a high likelihood of securing a seat.\n\n---\n\n### How to use this information\n\n[figure not available in the system's data]. **Check your own JEE Main rank** (and the category you belong to – e.g., OPEN, OBC‑NCL, SC, etc.).  \n[figure not available in the system's data]. Compare your rank with the closing‑rank numbers above.  \n   - If your rank is **better (lower)** than a programme’s closing rank, that option is likely within reach.  \n   - If your rank is **close to or slightly worse (higher)** than a closing rank, you may still have a chance, but the probability drops.  \n[figure not available in the system's data]. Decide which specialisation (plain CS, Cyber Physical System, Cyber Security, Data Science) aligns with your interests and career goals.\n\n---\n\n### What to do next\n\nSince I don’t have your exact rank and category, I can’t pinpoint which of these options are the best fit for you right now. Please share **your JEE Main rank and your category** (e.g., OPEN, OBC‑NCL, SC, etc.), and I’ll be able to tell you which of the listed CS programmes are most realistic for you.",
+    "source_college_ids": [
+      "indian-institute-of-information-technology-agartala",
+      "sardar-vallabhbhai-national-institute-of-technology-surat",
+      "indian-institute-of-information-technology-iiit-vadodara-gujrat",
+      "indian-institute-of-information-technology-bhagalpur",
+      "indian-institute-of-information-technology-bhopal"
+    ],
+    "blocked_ungrounded_figure": true
+  },
+  "routing_mode": "semantic",
+  "grounded_values": [
+    "0.258",
+    "0.259",
+    "0.269",
+    "0.271",
+    "0.272",
+    "0.95",
+    "2025",
+    "21965",
+    "23757",
+    "24435",
+    "26",
+    "26%",
+    "27",
+    "27%",
+    "27958",
+    "30222",
+    "30755",
+    "35514",
+    "39655",
+    "39676",
+    "40112",
+    "42430",
+    "42732",
+    "43537",
+    "45364",
+    "47130",
+    "47854",
+    "49156",
+    "55163",
+    "66",
+    "8000",
+    "95",
+    "95%"
+  ]
+}

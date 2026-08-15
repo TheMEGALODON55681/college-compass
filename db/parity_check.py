@@ -25,15 +25,15 @@ import argparse
 import sys
 
 import pandas as pd
-from sentence_transformers import SentenceTransformer
 from sqlalchemy import text as sa_text
 
 from api.eligibility import build_forecasts, load_reference_tables, merge_forecasts_with_colleges
 from db.connection import DEFAULT_DATABASE_URL, get_engine
 from models.admission_probability import load_artifacts as load_probability_artifacts
 from models.counsellor_retrieval import build_context_bundle, build_lookup_cache
+from models.onnx_encoder import OnnxSentenceEncoder
 from models.ranker import load_ranker
-from models.similarity import EMBEDDING_MODEL_NAME, build_all_profiles, load_similarity_index
+from models.similarity import build_all_profiles, load_similarity_index
 
 import api.main as api_main
 
@@ -191,7 +191,7 @@ def run(postgres_url, sqlite_url=None):
     ranker = load_ranker()
     probability_artifacts = load_probability_artifacts()
     similarity_bundle = load_similarity_index()
-    embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+    embedding_model = OnnxSentenceEncoder()
 
     print(f"[parity] building sqlite environment ({sqlite_url})...")
     sqlite_state = build_environment(sqlite_url, ranker, probability_artifacts, similarity_bundle, embedding_model)

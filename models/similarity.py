@@ -26,7 +26,6 @@ import re
 import faiss
 import numpy as np
 import pandas as pd
-from sentence_transformers import SentenceTransformer
 
 from db.connection import get_database_url, get_engine
 
@@ -167,21 +166,31 @@ def build_all_profiles(database_url=None):
 
 
 def build_index(database_url=None):
-    """Offline step: embeds every college profile with a small sentence-
-    transformer, builds a cosine-similarity FAISS index (inner product over
-    L2-normalized vectors) and persists it plus a metadata JSON (college_id
-    order, display fields, profile text). Rerun via `python -m models.similarity`
-    whenever college data changes.
+    """Offline step: embeds every college profile with the same ONNX
+    encoder the running API uses at request time (see models/onnx_encoder.py
+    - same weights as the original sentence-transformers model, verified to
+    better than 0.9999 cosine similarity), builds a cosine-similarity FAISS
+    index (inner product over L2-normalized vectors) and persists it plus a
+    metadata JSON (college_id order, display fields, profile text). Rerun
+    via `python -m models.similarity` whenever college data changes.
+
+    Imported locally, not at module level: this is the only place in this
+    module that needs an encoder at all (query-time retrieval in
+    get_similar_colleges never does - see the module docstring), so merely
+    importing this module for that function, or for load_similarity_index,
+    stays as light as possible.
     """
+    from models.onnx_encoder import OnnxSentenceEncoder
+
     profiles, colleges = build_all_profiles(database_url)
     college_ids = list(profiles.keys())
     category_texts = [profiles[cid][0] for cid in college_ids]
     branch_texts = [profiles[cid][1] or profiles[cid][0] for cid in college_ids]
 
-    print(f"[similarity] embedding {2 * len(college_ids)} profile fields with {EMBEDDING_MODEL_NAME}...")
-    model = SentenceTransformer(EMBEDDING_MODEL_NAME)
-    category_embeddings = model.encode(category_texts, normalize_embeddings=True, show_progress_bar=False)
-    branch_embeddings = model.encode(branch_texts, normalize_embeddings=True, show_progress_bar=False)
+    print(f"[similarity] embedding {2 * len(college_ids)} profile fields with {EMBEDDING_MODEL_NAME} (ONNX)...")
+    model = OnnxSentenceEncoder()
+    category_embeddings = model.encode(category_texts, normalize_embeddings=True)
+    branch_embeddings = model.encode(branch_texts, normalize_embeddings=True)
 
     combined = CATEGORY_WEIGHT * category_embeddings + BRANCH_WEIGHT * branch_embeddings
     combined = combined / np.linalg.norm(combined, axis=1, keepdims=True)

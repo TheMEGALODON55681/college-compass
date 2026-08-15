@@ -1,0 +1,51 @@
+{
+  "request": {
+    "college_id": "national-institute-of-technology-tiruchirappalli"
+  },
+  "response": {
+    "college_id": "national-institute-of-technology-tiruchirappalli",
+    "similar": [
+      {
+        "college_id": "indian-institute-of-technology-tirupati",
+        "college_name": "Indian Institute of Technology Tirupati",
+        "institute_type": "IIT",
+        "state": "Andhra Pradesh",
+        "nirf_rank": 57,
+        "similarity_score": 0.908
+      },
+      {
+        "college_id": "national-institute-of-technology-raipur",
+        "college_name": "National Institute of Technology Raipur",
+        "institute_type": "NIT",
+        "state": "Chhattisgarh",
+        "nirf_rank": 86,
+        "similarity_score": 0.901
+      },
+      {
+        "college_id": "national-institute-of-technology-calicut",
+        "college_name": "National Institute of Technology Calicut",
+        "institute_type": "NIT",
+        "state": "Kerala",
+        "nirf_rank": 21,
+        "similarity_score": 0.897
+      },
+      {
+        "college_id": "national-institute-of-technology-srinagar",
+        "college_name": "National Institute of Technology, Srinagar",
+        "institute_type": "NIT",
+        "state": "Jammu and Kashmir",
+        "nirf_rank": 73,
+        "similarity_score": 0.89
+      },
+      {
+        "college_id": "visvesvaraya-national-institute-of-technology-nagpur",
+        "college_name": "Visvesvaraya National Institute of Technology, Nagpur",
+        "institute_type": "NIT",
+        "state": "Maharashtra",
+        "nirf_rank": 44,
+        "similarity_score": 0.884
+      }
+    ],
+    "note": "Similar by type, location, ranking, and programs offered - not a personalized match for you specifically."
+  }
+}

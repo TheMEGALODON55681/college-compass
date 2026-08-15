@@ -1,0 +1,13 @@
+{
+  "request": {
+    "question": "What is the average placement package at IIT Bombay?",
+    "student_profile": null
+  },
+  "response": {
+    "answer": "This system deliberately does not include placement or package data. I can help with JEE Main / JoSAA eligibility, predicted cutoffs, admission probability, and comparing colleges instead.",
+    "source_college_ids": [],
+    "blocked_ungrounded_figure": false
+  },
+  "routing_mode": "out_of_scope_placement",
+  "grounded_values": []
+}

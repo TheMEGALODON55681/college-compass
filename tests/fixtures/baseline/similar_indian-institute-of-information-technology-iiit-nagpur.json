@@ -1,0 +1,51 @@
+{
+  "request": {
+    "college_id": "indian-institute-of-information-technology-iiit-nagpur"
+  },
+  "response": {
+    "college_id": "indian-institute-of-information-technology-iiit-nagpur",
+    "similar": [
+      {
+        "college_id": "indian-institute-of-information-technology-iiit-pune",
+        "college_name": "Indian Institute of Information Technology (IIIT) Pune",
+        "institute_type": "IIIT",
+        "state": null,
+        "nirf_rank": null,
+        "similarity_score": 0.969
+      },
+      {
+        "college_id": "indian-institute-of-information-technology-iiit-dharwad",
+        "college_name": "Indian Institute of Information Technology(IIIT) Dharwad",
+        "institute_type": "IIIT",
+        "state": null,
+        "nirf_rank": null,
+        "similarity_score": 0.959
+      },
+      {
+        "college_id": "indian-institute-of-information-technology-iiit-kottayam",
+        "college_name": "Indian Institute of Information Technology(IIIT) Kottayam",
+        "institute_type": "IIIT",
+        "state": null,
+        "nirf_rank": null,
+        "similarity_score": 0.952
+      },
+      {
+        "college_id": "indian-institute-of-information-technology-iiit-kota-rajasthan",
+        "college_name": "Indian Institute of Information Technology (IIIT)Kota, Rajasthan",
+        "institute_type": "IIIT",
+        "state": null,
+        "nirf_rank": null,
+        "similarity_score": 0.949
+      },
+      {
+        "college_id": "indian-institute-of-information-technology-bhopal",
+        "college_name": "Indian Institute of Information Technology Bhopal",
+        "institute_type": "IIIT",
+        "state": null,
+        "nirf_rank": null,
+        "similarity_score": 0.946
+      }
+    ],
+    "note": "Similar by type, location, ranking, and programs offered - not a personalized match for you specifically."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "request": {
+    "college_id": "indian-institute-of-technology-bombay"
+  },
+  "response": {
+    "college_id": "indian-institute-of-technology-bombay",
+    "similar": [
+      {
+        "college_id": "indian-institute-of-technology-madras",
+        "college_name": "Indian Institute of Technology Madras",
+        "institute_type": "IIT",
+        "state": "Tamil Nadu",
+        "nirf_rank": 1,
+        "similarity_score": 0.948
+      },
+      {
+        "college_id": "indian-institute-of-technology-kanpur",
+        "college_name": "Indian Institute of Technology Kanpur",
+        "institute_type": "IIT",
+        "state": "Uttar Pradesh",
+        "nirf_rank": 4,
+        "similarity_score": 0.944
+      },
+      {
+        "college_id": "indian-institute-of-technology-delhi",
+        "college_name": "Indian Institute of Technology Delhi",
+        "institute_type": "IIT",
+        "state": "Delhi",
+        "nirf_rank": 2,
+        "similarity_score": 0.933
+      },
+      {
+        "college_id": "indian-institute-of-technology-gandhinagar",
+        "college_name": "Indian Institute of Technology Gandhinagar",
+        "institute_type": "IIT",
+        "state": "Gujarat",
+        "nirf_rank": 25,
+        "similarity_score": 0.928
+      },
+      {
+        "college_id": "indian-institute-of-technology-jammu",
+        "college_name": "Indian Institute of Technology Jammu",
+        "institute_type": "IIT",
+        "state": "Jammu and Kashmir",
+        "nirf_rank": 56,
+        "similarity_score": 0.927
+      }
+    ],
+    "note": "Similar by type, location, ranking, and programs offered - not a personalized match for you specifically."
+  }
+}

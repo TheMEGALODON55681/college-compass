@@ -1,0 +1,22 @@
+{
+  "request": {
+    "question": "What is the predicted closing rank for Computer Science and Engineering at IIT Bombay?",
+    "student_profile": {
+      "jee_rank": 5000,
+      "category": "OPEN"
+    }
+  },
+  "response": {
+    "answer": "I’m sorry, but the provided records do not contain any information about the predicted closing rank for Computer Science and Engineering at IIT Bombay.  \n\nIf you’d like, you could ask for the closing‑rank cutoff for a specific rank and category (e.g., “What is the closing‑rank cutoff for a General‑category student with an All‑India rank of 5,000 at IIT Bombay?”). That way I can give you an answer based on the available data.",
+    "source_college_ids": [
+      "indian-institute-of-technology-bombay"
+    ],
+    "blocked_ungrounded_figure": false
+  },
+  "routing_mode": "structured",
+  "grounded_values": [
+    "2.5",
+    "3",
+    "5000"
+  ]
+}

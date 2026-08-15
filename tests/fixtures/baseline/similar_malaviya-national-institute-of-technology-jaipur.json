@@ -1,0 +1,51 @@
+{
+  "request": {
+    "college_id": "malaviya-national-institute-of-technology-jaipur"
+  },
+  "response": {
+    "college_id": "malaviya-national-institute-of-technology-jaipur",
+    "similar": [
+      {
+        "college_id": "national-institute-of-technology-raipur",
+        "college_name": "National Institute of Technology Raipur",
+        "institute_type": "NIT",
+        "state": "Chhattisgarh",
+        "nirf_rank": 86,
+        "similarity_score": 0.928
+      },
+      {
+        "college_id": "national-institute-of-technology-patna",
+        "college_name": "National Institute of Technology Patna",
+        "institute_type": "NIT",
+        "state": "Bihar",
+        "nirf_rank": 53,
+        "similarity_score": 0.901
+      },
+      {
+        "college_id": "national-institute-of-technology-srinagar",
+        "college_name": "National Institute of Technology, Srinagar",
+        "institute_type": "NIT",
+        "state": "Jammu and Kashmir",
+        "nirf_rank": 73,
+        "similarity_score": 0.897
+      },
+      {
+        "college_id": "national-institute-of-technology-delhi",
+        "college_name": "National Institute of Technology Delhi",
+        "institute_type": "NIT",
+        "state": "Delhi",
+        "nirf_rank": 65,
+        "similarity_score": 0.894
+      },
+      {
+        "college_id": "visvesvaraya-national-institute-of-technology-nagpur",
+        "college_name": "Visvesvaraya National Institute of Technology, Nagpur",
+        "institute_type": "NIT",
+        "state": "Maharashtra",
+        "nirf_rank": 44,
+        "similarity_score": 0.89
+      }
+    ],
+    "note": "Similar by type, location, ranking, and programs offered - not a personalized match for you specifically."
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "request": {
+    "college_id": "indian-institute-of-technology-bhubaneswar",
+    "program_id": "civil-engineering-bachelor-of-technology-4y",
+    "category": "OPEN",
+    "quota": "AI"
+  },
+  "response": {
+    "college_id": "indian-institute-of-technology-bhubaneswar",
+    "program_id": "civil-engineering-bachelor-of-technology-4y",
+    "category": "OPEN",
+    "quota": "AI",
+    "history": [
+      {
+        "year": 2016,
+        "closing_rank": 7066
+      },
+      {
+        "year": 2017,
+        "closing_rank": 7857
+      },
+      {
+        "year": 2018,
+        "closing_rank": 8116
+      },
+      {
+        "year": 2019,
+        "closing_rank": 9269
+      },
+      {
+        "year": 2020,
+        "closing_rank": 11238
+      },
+      {
+        "year": 2021,
+        "closing_rank": 12396
+      },
+      {
+        "year": 2022,
+        "closing_rank": 13624
+      },
+      {
+        "year": 2023,
+        "closing_rank": 14997
+      },
+      {
+        "year": 2024,
+        "closing_rank": 14782
+      }
+    ]
+  }
+}

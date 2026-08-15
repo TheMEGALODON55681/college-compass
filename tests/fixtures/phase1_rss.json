@@ -1,0 +1,8 @@
+{
+  "boot_wall_seconds": 25.2,
+  "after_startup_mb": 384.6,
+  "after_first_recommend_mb": 386.0,
+  "after_first_semantic_chat_mb": 397.7,
+  "recommend_matches_phase0_fixture": true,
+  "chat_source_college_ids_match_phase0_fixture": true
+}

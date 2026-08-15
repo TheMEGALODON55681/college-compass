@@ -1,0 +1,22 @@
+{
+  "request": {
+    "question": "Predict the exact closing rank for Computer Science and Engineering at IIT Bombay in the year 2030, down to the exact rank number.",
+    "student_profile": {
+      "jee_rank": 5000,
+      "category": "OPEN"
+    }
+  },
+  "response": {
+    "answer": "I’m sorry, but the figure you are asking for is not available in the provided context.",
+    "source_college_ids": [
+      "indian-institute-of-technology-bombay"
+    ],
+    "blocked_ungrounded_figure": false
+  },
+  "routing_mode": "structured",
+  "grounded_values": [
+    "2.5",
+    "3",
+    "5000"
+  ]
+}

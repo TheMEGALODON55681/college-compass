@@ -28,7 +28,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
-from sentence_transformers import SentenceTransformer
 from sqlalchemy import text
 from typing import Literal, Optional
 
@@ -40,7 +39,7 @@ from models.admission_probability import load_artifacts as load_probability_arti
 from models.counsellor import generate_answer
 from models.counsellor_retrieval import build_context_bundle, build_lookup_cache
 from models.ranker import load_ranker, score_candidates_for_student
-from models.similarity import EMBEDDING_MODEL_NAME, get_similar_colleges, load_similarity_index
+from models.similarity import get_similar_colleges, load_similarity_index
 
 MIN_RANK = 1
 MAX_RANK = 2_000_000
@@ -74,9 +73,6 @@ async def lifespan(app: FastAPI):
     if similarity_bundle is None:
         print("[api] no similarity index found on disk - /similar/{college_id} will return 503 until `python -m models.similarity` is run")
 
-    print("[api] loading sentence-transformer for counsellor semantic retrieval...")
-    embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
-
     print("[api] loading counsellor college/branch name lookup cache...")
     counsellor_lookup = build_lookup_cache()
 
@@ -86,16 +82,18 @@ async def lifespan(app: FastAPI):
     model_state["probability_artifacts"] = probability_artifacts
     model_state["known_states"] = set(reference_tables[0]["state"].dropna().unique().tolist())
     model_state["similarity_bundle"] = similarity_bundle
-    model_state["embedding_model"] = embedding_model
     model_state["counsellor_lookup"] = counsellor_lookup
 
     print("[api] warming up the ranker's first-prediction cost at boot, not on the first real request...")
     warmup_student = StudentProfile(jee_rank=50000, category="OPEN")
     score_candidates_for_student(ranker, warmup_student, merged_forecasts, reference_tables)
 
-    print("[api] warming up the embedding model's first-call cost at boot...")
-    embedding_model.encode(["warmup query"], normalize_embeddings=True)
-
+    # The ONNX encoder (models/onnx_encoder.py) is deliberately not loaded
+    # here - it's only needed for /chat's semantic retrieval path, and even
+    # importing onnxruntime/tokenizers has a real cost. See
+    # models/counsellor_retrieval.py's _get_embedding_model, which loads it
+    # lazily on first semantic /chat call and caches it in model_state same
+    # as every other artifact here.
     print("[api] models loaded and ready")
     yield
     model_state.clear()

@@ -260,17 +260,32 @@ def _structured_records_for_college(college_id, student, model_state, branch_fil
     return records
 
 
+def _get_embedding_model(model_state):
+    """Lazy, cached in model_state exactly like every other artifact in
+    api/main.py's lifespan - except this one loads on first call instead of
+    at boot, since it's only needed for this one retrieval path and even
+    importing onnxruntime/tokenizers has a real cost. The import is
+    function-local so that cost is deferred too, not just the InferenceSession
+    construction.
+    """
+    if "embedding_model" not in model_state:
+        from models.onnx_encoder import OnnxSentenceEncoder
+
+        model_state["embedding_model"] = OnnxSentenceEncoder()
+    return model_state["embedding_model"]
+
+
 def _semantic_records(question, model_state, exclude_college_ids, student, cs_adjacent_only):
-    """Embeds the question at request time (the model is loaded once at API
-    startup, see api/main.py) and searches the existing similarity index -
-    no second index is built. Attaches structured numbers for each matched
-    college too, when a student profile is available, so the fuzzy path is
-    just as numerically grounded as the named-college path.
+    """Embeds the question at request time (the model loads lazily on first
+    use, see _get_embedding_model above) and searches the existing
+    similarity index - no second index is built. Attaches structured numbers
+    for each matched college too, when a student profile is available, so
+    the fuzzy path is just as numerically grounded as the named-college path.
     """
     similarity_bundle = model_state.get("similarity_bundle")
-    embedding_model = model_state.get("embedding_model")
-    if similarity_bundle is None or embedding_model is None:
+    if similarity_bundle is None:
         return []
+    embedding_model = _get_embedding_model(model_state)
 
     index, metadata = similarity_bundle
     query_vector = embedding_model.encode([question], normalize_embeddings=True).astype("float32")
