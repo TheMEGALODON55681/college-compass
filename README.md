@@ -6,6 +6,10 @@ dream, each with a predicted closing rank and a calibrated admission
 probability. It also provides item-to-item "similar colleges" retrieval, a
 grounded counsellor chatbot, and a downloadable PDF counselling report.
 
+Live at [college-compass-sandy.vercel.app](https://college-compass-sandy.vercel.app).
+The backend, including a browsable API at `/docs`, is at
+[college-compass-il7k.onrender.com](https://college-compass-il7k.onrender.com).
+
 This is a decision aid, not an official JoSAA tool and not advice. See
 [Scope and limitations](#scope-and-limitations) before you rely on it.
 
@@ -123,6 +127,14 @@ second server or reverse proxy needed. Hosting the frontend separately
 works too. Either way, `CORS_ORIGINS` and `VITE_API_BASE` are the only two
 settings that change.
 
+### The live deployment
+
+The live instance is the split-hosting case above: a static Vercel build
+for the frontend, a separate Render service for the backend. The
+frontend's `VITE_API_BASE` points at the Render backend's origin, and the
+backend's `CORS_ORIGINS` allows the Vercel origin. That's the whole
+connection between them.
+
 ## How it works
 
 **Data pipeline.** A normalization step reconciles six public sources
@@ -199,6 +211,14 @@ Stated plainly, because a hidden limitation is worse than a stated one.
   to the wrong, similarly-named IIT. The counsellor's answer is grounded in
   real data, but it's about the wrong college: ask by full official name
   for these until the underlying matcher is fixed.
+- **The backend runs on a free instance: 512MB RAM, a fraction of a CPU.**
+  Requests are slower than the screenshots suggest.
+- **The first counsellor question that doesn't name a specific college is
+  the slow one.** It loads the sentence encoder on demand, the same
+  tradeoff described in [Quickstart](#quickstart).
+- **A cold backend takes time to wake up.** A keep-warm ping hits `/health`
+  every ten minutes, so this should be rare, but the free tier makes it
+  possible.
 
 Full detail on all of the above, plus what's already been tested and what
 hasn't, is in [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
@@ -210,4 +230,5 @@ Machine learning: LightGBM, isotonic calibration, an ONNX Runtime encoder
 (all-MiniLM-L6-v2) with a FAISS index. PDF: reportlab. Frontend: React 18,
 TypeScript, Vite, react-router for routing, motion for animation, recharts
 for the cutoff chart, lucide-react for icons, and a hand-authored
-CSS-variable design system with no component framework.
+CSS-variable design system with no component framework. Deployed on
+Vercel (frontend) and Render (backend).
