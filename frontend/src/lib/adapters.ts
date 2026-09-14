@@ -176,6 +176,7 @@ function toCollege(row: CollegeResult, studentRank: number): College {
     probability: Math.round(row.admission_probability * 100),
     status: BAND_TO_TIER[row.band],
     closingRank: row.predicted_closing_rank,
+    trend: row.trend,
     why: buildWhy(row, studentRank),
     collegeId: row.college_id,
     programId: row.program_id,

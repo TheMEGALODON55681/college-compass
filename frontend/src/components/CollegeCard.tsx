@@ -6,6 +6,7 @@ import type { College } from "../lib/types";
 import { formatLocation } from "../lib/adapters";
 import { StatusPill } from "./StatusPill";
 import { ProbabilityMeter } from "./ProbabilityMeter";
+import { TrendBadge } from "./TrendBadge";
 
 export function CollegeCard({ college, index, onDetail, studentRank }: {
   college: College; index: number; onDetail: (c: College) => void; studentRank: number;
@@ -65,7 +66,10 @@ export function CollegeCard({ college, index, onDetail, studentRank }: {
         </div>
         <div>
           <div style={{ fontFamily: fMono, fontSize: 10, color: C.ink500, letterSpacing: "0.08em", textTransform: "uppercase" }}>Expected closing</div>
-          <div style={{ fontFamily: fMono, fontSize: 18, fontWeight: 500, color: C.ink700 }}>{college.closingRank.toLocaleString("en-IN")}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ fontFamily: fMono, fontSize: 18, fontWeight: 500, color: C.ink700 }}>{college.closingRank.toLocaleString("en-IN")}</div>
+            <TrendBadge trend={college.trend} />
+          </div>
         </div>
       </div>
 

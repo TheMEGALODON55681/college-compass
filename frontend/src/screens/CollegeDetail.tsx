@@ -12,6 +12,7 @@ import { Eyebrow } from "../components/Eyebrow";
 import { StatusPill } from "../components/StatusPill";
 import { ProbabilityMeter } from "../components/ProbabilityMeter";
 import { CutoffTrendChart } from "../components/CutoffTrendChart";
+import { TrendBadge } from "../components/TrendBadge";
 import { SimilarColleges } from "../components/SimilarColleges";
 import { InlineError } from "../components/states/InlineError";
 
@@ -158,6 +159,7 @@ export function CollegeDetail() {
                 </span>
               )}
             </div>
+            {college.trend && <div style={{ marginTop: 10 }}><TrendBadge trend={college.trend} showLine /></div>}
             {chartState === "loading" && (
               <p style={{ fontFamily: fBody, fontSize: 13, color: C.ink500, marginTop: 12 }}>
                 Reading year-over-year JoSAA data for this seat.

@@ -1,3 +1,5 @@
+import type { Trend } from "./api";
+
 export type Tier = "likely" | "fair" | "reach";
 
 export interface College {
@@ -11,13 +13,15 @@ export interface College {
   status: Tier;
   closingRank: number;
   why: string; // plain, respectful, human
-  // Raw ids and quota, kept alongside the composed `id` so the College
-  // detail screen can call /cutoffs and /similar/{id} without parsing them
-  // back out of `id`. Optional: illustrative mock cards (Landing's sample
-  // preview) never navigate to a live detail fetch, so they don't set these.
+  // Raw ids, quota, and trend, kept alongside the composed `id` so the
+  // College detail screen can call /cutoffs and /similar/{id} without
+  // parsing them back out of `id`. Optional: illustrative mock cards
+  // (Landing's sample preview) never navigate to a live detail fetch, so
+  // they don't set these.
   collegeId?: string;
   programId?: string;
   quotaUsed?: string;
+  trend?: Trend | null;
 }
 
 export interface Student {

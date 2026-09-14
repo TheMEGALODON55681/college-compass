@@ -37,6 +37,8 @@ CREATE TABLE cutoffs (
 	FOREIGN KEY(program_id) REFERENCES programs (program_id)
 );
 
+CREATE INDEX ix_cutoffs_college_program_category_quota ON cutoffs (college_id, program_id, category, quota);
+
 CREATE TABLE nirf_rankings (
 	nirf_id SERIAL NOT NULL, 
 	college_id VARCHAR NOT NULL, 

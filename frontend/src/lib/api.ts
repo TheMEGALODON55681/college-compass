@@ -20,6 +20,16 @@ export interface RecommendRequest {
   prefers_home_state?: boolean;
 }
 
+export type TrendLabel = "Tightening" | "Stable" | "Loosening" | "Insufficient history";
+
+export interface Trend {
+  label: TrendLabel;
+  years_used: number;
+  slope: number | null;
+  residual_slope: number | null;
+  reason: string | null;
+}
+
 export interface CollegeResult {
   rank_order: number;
   college_id: string;
@@ -36,6 +46,9 @@ export interface CollegeResult {
   fees_annual_lakhs: number | null;
   admission_probability: number;
   probability_is_approximate: boolean;
+  // Additive and optional (docs/Rules.md section 7): absent when the
+  // classifier raised for this row, never a reason to drop the row itself.
+  trend: Trend | null;
 }
 
 export interface RecommendResponse {

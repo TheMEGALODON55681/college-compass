@@ -13,39 +13,57 @@
     "history": [
       {
         "year": 2016,
-        "closing_rank": 60
+        "closing_rank": 60,
+        "round": 6,
+        "opening_rank": 1
       },
       {
         "year": 2017,
-        "closing_rank": 62
+        "closing_rank": 62,
+        "round": 7,
+        "opening_rank": 1
       },
       {
         "year": 2018,
-        "closing_rank": 59
+        "closing_rank": 59,
+        "round": 7,
+        "opening_rank": 1
       },
       {
         "year": 2019,
-        "closing_rank": 63
+        "closing_rank": 63,
+        "round": 7,
+        "opening_rank": 1
       },
       {
         "year": 2020,
-        "closing_rank": 66
+        "closing_rank": 66,
+        "round": 6,
+        "opening_rank": 2
       },
       {
         "year": 2021,
-        "closing_rank": 67
+        "closing_rank": 67,
+        "round": 6,
+        "opening_rank": 1
       },
       {
         "year": 2022,
-        "closing_rank": 61
+        "closing_rank": 61,
+        "round": 6,
+        "opening_rank": 2
       },
       {
         "year": 2023,
-        "closing_rank": 67
+        "closing_rank": 67,
+        "round": null,
+        "opening_rank": 1
       },
       {
         "year": 2024,
-        "closing_rank": 68
+        "closing_rank": 68,
+        "round": null,
+        "opening_rank": 1
       }
     ]
   }

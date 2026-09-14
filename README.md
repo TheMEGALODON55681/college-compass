@@ -81,6 +81,38 @@ version at [docs/architecture-graph.html](docs/architecture-graph.html),
 and the full audit is in
 [docs/ARCHITECTURE_GRAPH_REPORT.md](docs/ARCHITECTURE_GRAPH_REPORT.md).
 
+## Build the database
+
+A fresh clone has no `college_compass.db`: it is gitignored, along with the
+`data/raw/` and `data/processed/` directories the pipeline builds it from.
+Every trained model artifact (regressor, ranker, calibrator, FAISS index)
+still ships with the repo and needs none of this. Do this once, from the
+repo root, before [Quickstart](#quickstart):
+
+```
+pip install -r requirements.txt
+python -m data_pipeline.ingest
+python -m data_pipeline.normalize
+python -m data_pipeline.build_dataset
+```
+
+- `data_pipeline.ingest` downloads every raw source (JoSAA's round-wise
+  2016-2020 cutoffs, the 2024 and 2025 snapshots, two independent 2021-2023
+  backfills, NIRF's engineering rankings) into `data/raw/`. Every source is
+  a public file on GitHub or nirfindia.org, no login or API key. It is
+  idempotent, so re-running it after a failed or partial pull only fetches
+  what is still missing.
+- `data_pipeline.normalize` reconciles those raw sources into
+  `data/processed/`, as five Parquet files (colleges, programs, cutoffs,
+  seat_counts, nirf_rankings), via `pyarrow`.
+- `data_pipeline.build_dataset` loads those Parquet files into
+  `college_compass.db` (or `DATABASE_URL`, if set) and prints a coverage
+  report naming exactly which year and institute-type combinations have
+  real data.
+
+Expect this to take a few minutes; each step logs its own progress as it
+runs.
+
 ## Quickstart
 
 Backend:
@@ -91,12 +123,12 @@ cp .env.example .env
 python -m uvicorn api.main:app --port 8000
 ```
 
-The SQLite database and every trained model artifact (regressor, ranker,
-calibrator, FAISS index) ship with the repo. Nothing needs to be rebuilt.
-Startup loads them once; the API 503s until that finishes, then stays fast.
-One exception: the counsellor's text encoder loads on the first semantic
-question instead of at startup, so that first question is slower than the
-ones after it.
+Every trained model artifact (regressor, ranker, calibrator, FAISS index)
+ships with the repo; the database does not (see
+[Build the database](#build-the-database)). Startup loads everything once;
+the API 503s until that finishes, then stays fast. One exception: the
+counsellor's text encoder loads on the first semantic question instead of
+at startup, so that first question is slower than the ones after it.
 
 Frontend, in a second terminal:
 
@@ -166,6 +198,23 @@ features, so it can't just learn to reconstruct the label from itself.
 validation year, corrects a residual-based raw probability. The result is
 rounded to the nearest 5% before it's ever shown, so it never implies more
 precision than the model actually has.
+
+**Cutoff trend.** Every result row and the college detail screen carry a
+deterministic Tightening, Stable, or Loosening label, built from an
+ordinary least squares slope over that college-branch-category-quota's
+settled year-over-year closing rank. Below three usable years the label
+reads `Insufficient history` instead of guessing. The slope is detrended
+first: JoSAA's seat pool expanded broadly from 2016 to 2024, so a raw slope
+mostly measures that system-wide drift rather than anything specific to one
+college, and a raw threshold once labeled 57% of colleges Loosening, which
+told a student nothing. The classifier subtracts the median normalized
+slope across the same population (0.0412, fit on 2016-2024 data) before
+comparing the result against a neutral band of 0.03. Refit against that
+residual distribution, the actual split across colleges with enough history
+is 36.6% Stable, 32.7% Tightening, 30.7% Loosening. The whole settled
+history table (about 50,600 year-rank pairs) is built once per process and
+cached in memory, not re-queried per request, since it only changes when
+the database is reingested.
 
 **Grounded counsellor.** The system routes a question to structured lookup
 (a named college, reusing the exact forecast and probability numbers

@@ -15,7 +15,9 @@ and ranker, exactly as they exist.
 
 import os
 import re
+import sys
 from contextlib import asynccontextmanager
+from dataclasses import asdict
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -28,7 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import text
+from sqlalchemy import bindparam, text
 from typing import Literal, Optional
 
 from api.eligibility import StudentProfile, build_forecasts, load_reference_tables, merge_forecasts_with_colleges
@@ -40,6 +42,7 @@ from models.counsellor import generate_answer
 from models.counsellor_retrieval import build_context_bundle, build_lookup_cache
 from models.ranker import load_ranker, score_candidates_for_student
 from models.similarity import get_similar_colleges, load_similarity_index
+from models.trend import classify_trend
 
 MIN_RANK = 1
 MAX_RANK = 2_000_000
@@ -157,11 +160,21 @@ def meta():
     }
 
 
-def _row_to_result(rank_order, row, student_rank, probability_artifacts):
+def _row_to_result(rank_order, row, student_rank, probability_artifacts, category, history_cache):
     has_lag = row["prediction_source"] == "delta_model"
     admission_probability = predict_admission_probability(
         row["predicted_closing_rank"], student_rank, has_lag, probability_artifacts
     )
+
+    # Additive-only field (docs/Rules.md section 7): a classifier exception
+    # drops just this row's trend object, never the response it's attached to.
+    key = (row["college_id"], row["program_id"], category, row["quota_used"])
+    try:
+        trend = asdict(classify_trend(history_cache.get(key, [])))
+    except Exception as exc:
+        print(f"[api] trend classification failed for {key}: {exc}")
+        trend = None
+
     return {
         "rank_order": rank_order,
         "college_id": row["college_id"],
@@ -178,6 +191,7 @@ def _row_to_result(rank_order, row, student_rank, probability_artifacts):
         "fees_annual_lakhs": float(row["fees_annual_lakhs"]) if pd.notna(row["fees_annual_lakhs"]) else None,
         "admission_probability": admission_probability,
         "probability_is_approximate": not has_lag,
+        "trend": trend,
     }
 
 
@@ -208,13 +222,15 @@ def compute_recommendation(request: RecommendRequest):
 
     scored = score_candidates_for_student(model_state["ranker"], student, model_state["merged_forecasts"], model_state["reference_tables"])
     probability_artifacts = model_state["probability_artifacts"]
+    history_cache = _get_cutoff_history_cache()
 
     bands = {"safe": [], "moderate": [], "dream": []}
     if not scored.empty:
         for band in bands:
             band_df = scored[scored["band"] == band]
             bands[band] = [
-                _row_to_result(i + 1, row, request.jee_rank, probability_artifacts) for i, (_, row) in enumerate(band_df.iterrows())
+                _row_to_result(i + 1, row, request.jee_rank, probability_artifacts, request.category, history_cache)
+                for i, (_, row) in enumerate(band_df.iterrows())
             ]
 
     return {
@@ -277,6 +293,15 @@ def similar(college_id: str):
 FEMALE_ONLY_GENDER_SEAT_TYPE = "Female-only (including Supernumerary)"
 
 
+def _history_row(row):
+    return {
+        "year": int(row.year),
+        "closing_rank": int(row.closing_rank),
+        "round": int(row.round) if row.round is not None else None,
+        "opening_rank": int(row.opening_rank) if row.opening_rank is not None else None,
+    }
+
+
 def get_cutoff_history(college_id: str, program_id: str, category: str, quota: str, database_url=None):
     """Straight, read-only lookup against the existing cutoffs table for the
     College detail chart - no recompute, no ML. An unknown combination just
@@ -286,13 +311,15 @@ def get_cutoff_history(college_id: str, program_id: str, category: str, quota: s
     a raw per-row pull returns several points per year - a jagged mess, not a
     trend. This keeps only the last round each year (the settled closing
     rank), treating a null round (2023+ rows, reported without a round
-    breakdown) as already final rather than as round zero.
+    breakdown) as already final rather than as round zero. `round` and
+    `opening_rank` describe that same settled row; a null round means the
+    year genuinely has no round breakdown (2023+), not round zero.
     """
     engine = get_engine(database_url)
     query = text(
         """
         WITH ranked AS (
-            SELECT year, closing_rank,
+            SELECT year, round, opening_rank, closing_rank,
                    ROW_NUMBER() OVER (
                        PARTITION BY year
                        ORDER BY (round IS NULL) ASC, round DESC
@@ -304,7 +331,7 @@ def get_cutoff_history(college_id: str, program_id: str, category: str, quota: s
               AND quota = :quota
               AND gender_seat_type != :excluded_gender
         )
-        SELECT year, closing_rank FROM ranked WHERE rn = 1 ORDER BY year
+        SELECT year, round, opening_rank, closing_rank FROM ranked WHERE rn = 1 ORDER BY year
         """
     )
     with engine.connect() as conn:
@@ -318,7 +345,135 @@ def get_cutoff_history(college_id: str, program_id: str, category: str, quota: s
                 "excluded_gender": FEMALE_ONLY_GENDER_SEAT_TYPE,
             },
         ).fetchall()
-    return [{"year": int(row.year), "closing_rank": int(row.closing_rank)} for row in rows]
+    return [_history_row(row) for row in rows]
+
+
+def get_cutoff_history_bulk(keys, database_url=None):
+    """Bulk version of get_cutoff_history for many (college_id, program_id,
+    category, quota) keys in one query - a candidate set from /recommend can
+    carry 800+ rows, and calling the single-key query per row would turn one
+    request into hundreds of round trips. Not a second endpoint: a query-
+    layer function for Phase 2's trend assembly to call in process.
+
+    Same settled-round-per-year selection as the single-key query, so the two
+    agree row for row on any key they're both asked about (see
+    tests/test_cutoffs_endpoint.py). Filters by the distinct column values
+    present across all requested keys, then matches exact tuples in Python -
+    simpler and more portable than a composite-key SQL IN clause, and the
+    distinct-value lists stay small even for an 800-row candidate set (one
+    category, a handful of quotas, at most a few hundred colleges/programs).
+    """
+    unique_keys = list(dict.fromkeys(keys))
+    if not unique_keys:
+        return {}
+
+    college_ids = sorted({k[0] for k in unique_keys})
+    program_ids = sorted({k[1] for k in unique_keys})
+    categories = sorted({k[2] for k in unique_keys})
+    quotas = sorted({k[3] for k in unique_keys})
+
+    engine = get_engine(database_url)
+    query = text(
+        """
+        WITH ranked AS (
+            SELECT college_id, program_id, category, quota, year, round, opening_rank, closing_rank,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY college_id, program_id, category, quota, year
+                       ORDER BY (round IS NULL) ASC, round DESC
+                   ) AS rn
+            FROM cutoffs
+            WHERE college_id IN :college_ids
+              AND program_id IN :program_ids
+              AND category IN :categories
+              AND quota IN :quotas
+              AND gender_seat_type != :excluded_gender
+        )
+        SELECT college_id, program_id, category, quota, year, round, opening_rank, closing_rank
+        FROM ranked WHERE rn = 1 ORDER BY college_id, program_id, category, quota, year
+        """
+    ).bindparams(
+        bindparam("college_ids", expanding=True),
+        bindparam("program_ids", expanding=True),
+        bindparam("categories", expanding=True),
+        bindparam("quotas", expanding=True),
+    )
+    with engine.connect() as conn:
+        rows = conn.execute(
+            query,
+            {
+                "college_ids": college_ids,
+                "program_ids": program_ids,
+                "categories": categories,
+                "quotas": quotas,
+                "excluded_gender": FEMALE_ONLY_GENDER_SEAT_TYPE,
+            },
+        ).fetchall()
+
+    wanted = set(unique_keys)
+    result = {key: [] for key in unique_keys}
+    for row in rows:
+        key = (row.college_id, row.program_id, row.category, row.quota)
+        if key in wanted:
+            result[key].append(_history_row(row))
+    return result
+
+
+def build_cutoff_history_cache(database_url=None):
+    """Settled year/closing-rank history for every (college_id, program_id,
+    category, quota) key in the cutoffs table, in one query.
+
+    Cutoff history is static between reingests - it does not change request
+    to request or deploy to deploy. get_cutoff_history_bulk() re-derives the
+    same settled-round-per-year table on every /recommend call, which timed
+    at 360-450ms even with the composite index (KNOWN_ISSUES.md), because
+    the settled-round window function still runs over the matched rows after
+    the index narrows the scan. Building this table once and reusing it
+    turns that into a dict lookup.
+
+    Shape: {(college_id, program_id, category, quota): [(year, closing_rank), ...]}.
+    Narrower than get_cutoff_history_bulk's row shape on purpose - round and
+    opening_rank aren't inputs to trend classification (models/trend.py), so
+    they're dropped here rather than carried in a cache meant to stay small.
+    """
+    engine = get_engine(database_url)
+    query = text(
+        """
+        WITH ranked AS (
+            SELECT college_id, program_id, category, quota, year, closing_rank,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY college_id, program_id, category, quota, year
+                       ORDER BY (round IS NULL) ASC, round DESC
+                   ) AS rn
+            FROM cutoffs
+            WHERE gender_seat_type != :excluded_gender
+        )
+        SELECT college_id, program_id, category, quota, year, closing_rank
+        FROM ranked WHERE rn = 1
+        """
+    )
+    # Streamed, not .fetchall() - the intermediate 50k+ Row objects a
+    # one-shot fetch would hold all at once are pure overhead once each has
+    # been folded into cache. college_id/program_id/category/quota repeat
+    # across many rows (once per year a key has data, and again across every
+    # category/quota a college-program pair is offered under) - interned so
+    # those repeats share one string object instead of a fresh copy each row.
+    cache = {}
+    with engine.connect() as conn:
+        result = conn.execute(query, {"excluded_gender": FEMALE_ONLY_GENDER_SEAT_TYPE})
+        for row in result:
+            key = (sys.intern(row.college_id), sys.intern(row.program_id), sys.intern(row.category), sys.intern(row.quota))
+            cache.setdefault(key, []).append((int(row.year), int(row.closing_rank)))
+    return cache
+
+
+def _get_cutoff_history_cache():
+    """Lazy, cached in model_state exactly like _get_embedding_model in
+    models/counsellor_retrieval.py - built on the first /recommend call that
+    needs it, not at import time and not eagerly at startup.
+    """
+    if "cutoff_history_cache" not in model_state:
+        model_state["cutoff_history_cache"] = build_cutoff_history_cache()
+    return model_state["cutoff_history_cache"]
 
 
 @app.get("/cutoffs")

@@ -6,7 +6,7 @@ Postgres is a DATABASE_URL change plus Base.metadata.create_all(engine)
 against a real Postgres instance, since nothing here uses SQLite-only types.
 """
 
-from sqlalchemy import Column, Float, ForeignKey, Integer, String
+from sqlalchemy import Column, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
@@ -46,6 +46,12 @@ class Cutoff(Base):
     year = Column(Integer, nullable=False)
     round = Column(Integer, nullable=True)
     source_tag = Column(String, nullable=False)
+
+    # Matches the WHERE-clause column order in get_cutoff_history() and
+    # get_cutoff_history_bulk() (api/main.py), the only two query paths that
+    # filter cutoffs this way. Without it every lookup is a full table scan
+    # (see KNOWN_ISSUES.md / docs/BuildLog.md's Phase 1 timing).
+    __table_args__ = (Index("ix_cutoffs_college_program_category_quota", "college_id", "program_id", "category", "quota"),)
 
 
 class SeatCount(Base):

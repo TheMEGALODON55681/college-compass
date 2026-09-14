@@ -133,15 +133,110 @@ containment, so "iiit" never silently matches on an "iit" substring. Small,
 contained fix, but changes matching behavior for every question, so it
 deserves its own pass with test coverage rather than a drive-by edit.
 
+## 2023 and 2024 cutoffs have no round breakdown, and cannot be backfilled from any source already in the pipeline
+
+Confirmed during the Phase 1 round-backfill probe (forecast-depth upgrade).
+Every year 2016-2022 carries a real per-round series in the `cutoffs` table;
+2023 and 2024 carry exactly one row per key, with `round` null on all of
+them. This is not a normalizer bug: it traces to the source each year is
+actually fetched from.
+
+- 2016-2020: `fetch_josaa_rounds` (`data_pipeline/ingest.py:42`) pulls
+  seshaljain/josaa-scrape's per-round CSVs. Confirmed live against that
+  repo's GitHub API listing: it only ever published 2016-2020.
+- 2021-2022: `fetch_full_2021_2022` (`data_pipeline/ingest.py:87`, read by
+  `_read_full_2021_2022()` in `data_pipeline/normalize.py:206`) pulls a CSV
+  named `2016-2023dataa.csv` that does carry real Year/Round columns. The
+  filename overpromises: the file has zero rows for 2023 (`grep -c "^2023,"`
+  on the raw file returns 0 out of 312,400 rows), so `FULL_2021_2022_MAX_YEAR
+  = 2022` in `data_pipeline/sources.py:47` is already the true ceiling of
+  this source, not an arbitrary cutoff.
+- 2023: `fetch_snapshot_2023` (`data_pipeline/ingest.py:98`, read by
+  `_read_snapshot_2023()` in `data_pipeline/normalize.py:268`) pulls a sqlite
+  snapshot from Sbrjt/josaa-cutoffs. Its `tb` table has no Year or Round
+  column at all (confirmed by direct schema introspection of the downloaded
+  `data/raw/snapshot_2023/db.sqlite3`) - `normalize.py:284` sets `Round =
+  pd.NA` because there is nothing to read, not because it discards one.
+- 2024: `fetch_josaa_2024` (`data_pipeline/ingest.py:65`, read by
+  `_read_josaa_2024()` in `data_pipeline/normalize.py:198`) pulls
+  Quantum-Codes/JoSAA_2024's `josaa24.csv`. Confirmed by direct inspection:
+  the raw CSV has 7 columns (Institute, Academic Program Name, Quota, Seat
+  Type, Gender, Opening Rank, Closing Rank) and no Round column in the source
+  itself. Same reason for `Round = pd.NA` in `normalize.py:201`.
+
+**Deferred, per the Phase 1 hard-stop rule.** None of the four sources
+already wired into the pipeline exposes round-wise data for 2023 or 2024.
+Backfilling would need a fifth source: a public, no-auth repository
+publishing JoSAA's round-wise 2023 and/or 2024 closing ranks, verified the
+same way `full_2021_2022` and `snapshot_2023` were (cross-checked against a
+few institutes' own published PDFs before being trusted - see
+`data_pipeline/sources.py`), plus a new `fetch_*`/`_read_*` pair following
+the existing pattern and a rerun of `normalize.py` and the Phase 0 coverage
+audit. That is a new-source search and a verification pass, not a
+straightforward reuse of what already exists, so it is out of scope for a
+single phase and stays deferred until someone goes looking for that fifth
+source.
+
+This is binding on the round feature: Phase 5 and Phase 6's held-out year
+must keep coming from 2016-2022, exactly as Phase 0 already concluded.
+
 ## Postgres schema has no indexes beyond the ones SQLAlchemy creates for PK/FK
 
-The SQLite-to-Postgres migration (`db/migrate_to_postgres.py`) is a straight
-substrate swap - same tables, same columns, same keys, same query behavior.
-It does not add any Postgres-specific indexes (e.g. on `cutoffs(college_id,
-program_id)` or `cutoffs(year, gender_seat_type)`, which the regressor's
-training queries filter on heavily) beyond what SQLAlchemy's own primary/
-foreign key definitions already create. Adding those would very likely speed
-up Postgres reads, but it's a performance change, not a substrate swap, so it
-was deliberately left out of this migration rather than folded in. Worth
-doing as its own follow-up once the app is running on Postgres in a setting
-where query latency matters.
+**Partially addressed (Phase 2, forecast-depth upgrade).** `db/models.py` now
+declares `ix_cutoffs_college_program_category_quota`, a composite index on
+`cutoffs(college_id, program_id, category, quota)` matching the WHERE-clause
+column order in both `get_cutoff_history()` and `get_cutoff_history_bulk()`
+(`api/main.py`). `db/generate_schema_sql.py` now emits `CREATE INDEX`
+statements too (it previously only emitted `CREATE TABLE`), so `db/schema.sql`
+carries the index for a fresh Postgres bootstrap.
+
+**Dev SQLite: created and measured.** `EXPLAIN QUERY PLAN` on the same lookup
+now reports `SEARCH cutoffs USING INDEX ix_cutoffs_college_program_category_
+quota`, not `SCAN cutoffs`. Timed with `db/measure_cutoff_index.py` against
+the same 672-key candidate set Phase 1 used (a cold, non-pooled connection
+each time, not an average of warm repeat calls): 450.1 ms before the index,
+360.2-426.9 ms after across repeat runs. A real improvement, smaller than the
+index alone might suggest, because the settled-round selection is a window
+function (`ROW_NUMBER() OVER (PARTITION BY ... )`) over the filtered rows,
+which still has to run after the index narrows the scan.
+
+**Postgres: not yet measured.** No Postgres instance or credentials are
+available in the environment these phases run in. `db/measure_cutoff_index.py`
+is written and ready - it takes its target from the `DATABASE_URL`
+environment variable only, never a command-line argument, so a connection
+string never lands in shell history:
+
+    DATABASE_URL=postgresql://user:pass@host:5432/dbname python -m db.measure_cutoff_index
+
+It is idempotent (`checkfirst=True` on the index creation) and read-only
+otherwise, so it's safe to run against the real Render Postgres instance
+directly. The developer can still run this and report the numbers back for
+the record; this entry stays open until then.
+
+**No longer gates the trend classifier (Phase 2, updated 2026-09-14).**
+`/recommend` no longer calls `get_cutoff_history_bulk()` per request at all
+- `build_cutoff_history_cache()` (api/main.py) builds the whole settled
+history table once per process, lazily, and every request after the first
+is a dict lookup. The Postgres connection latency this entry was tracking
+only matters for the one-time cache build (and for `/cutoffs`'s single-key
+lookups, which were never the bottleneck), not for `/recommend`'s
+per-request cost. The index is still worth having and this number is still
+worth knowing, but it is informational now, not a blocker.
+
+## college_compass.db is tracked in git
+
+Found during Phase 2's repo-hygiene check (forecast-depth upgrade),
+2026-09-14: `git ls-files --error-unmatch college_compass.db` confirms the
+file is tracked, not ignored. It is currently 101.5MiB on disk and grows
+with every reingest (60.3MiB before the most recent one, per `git diff
+--stat`).
+
+A binary SQLite file in git history bloats the repository on every clone,
+makes every schema change an opaque diff instead of a reviewable one, and
+lets the tracked database silently drift from what `db/schema.sql` actually
+describes, since nothing enforces that the two stay in sync.
+
+Not fixed here. Untracking it (`git rm --cached college_compass.db` plus a
+`.gitignore` entry) is a git write, and per docs/Rules.md section 2 that is
+the developer's to run, not something to do automatically. Flagged
+directly to the developer this session as well.

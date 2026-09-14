@@ -5,7 +5,7 @@ Run after any change to models.py: python -m db.generate_schema_sql
 
 import os
 
-from sqlalchemy.schema import CreateTable
+from sqlalchemy.schema import CreateIndex, CreateTable
 
 from db.models import Base
 
@@ -17,10 +17,15 @@ def run():
         "-- see data_pipeline/build_dataset.py.",
         "",
     ]
+    dialect = __import__("sqlalchemy.dialects.postgresql", fromlist=["dialect"]).dialect()
     for table in Base.metadata.sorted_tables:
-        ddl = str(CreateTable(table).compile(dialect=__import__("sqlalchemy.dialects.postgresql", fromlist=["dialect"]).dialect()))
+        ddl = str(CreateTable(table).compile(dialect=dialect))
         lines.append(ddl.strip() + ";")
         lines.append("")
+        for index in table.indexes:
+            index_ddl = str(CreateIndex(index).compile(dialect=dialect))
+            lines.append(index_ddl.strip() + ";")
+            lines.append("")
     out_path = os.path.join(os.path.dirname(__file__), "schema.sql")
     with open(out_path, "w") as f:
         f.write("\n".join(lines))
