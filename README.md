@@ -216,6 +216,33 @@ history table (about 50,600 year-rank pairs) is built once per process and
 cached in memory, not re-queried per request, since it only changes when
 the database is reingested.
 
+**Round projection.** A naive per-round closing-rank curve, computed on
+demand for each `/recommend` row and anchored so the last round always
+equals the existing final-round forecast exactly. JoSAA's round count
+varies by year (6 rounds in 2016 and 2020-2022, 7 in 2017-2019), so the
+ratio between a round's closing rank and the final round's is keyed on
+fractional position in the sequence rather than absolute round number, and
+computed per category and branch family (CS-adjacent or core) from
+2016-2022 data only, since 2023 and 2024 carry no round breakdown. Checked
+against two held-out years, trained on the other six each time: a 6-round
+season (2021) and a 7-round season (2018), so the win isn't just an
+artifact of testing on the round count 2026 happens to share. Both beat
+the trivial "every round equals the final round" baseline at every round
+position - 2021 by 27-49% depending on position, 37% overall; 2018 by
+17-42%, 30% overall. The 7-round year's smaller margin is expected, not a
+weakness: its keying folds two of that year's rounds into one bucket, so
+part of what the ratio is being scored against is its own compression.
+Either way the ratio wins clearly, and 2021 and 2022, the two most recent
+years with round data, agree on 6 rounds, which is what 2026 is projected
+to be. There is no learned round model: a model trained on 2016-2022 would
+have no later year with round data left to validate against, so this
+pattern is what ships, not a trained one. Nothing about it is stored; it's
+arithmetic on a forecast the system already computed. The ratio table
+(`models/round_forecast_ratios.py`) is generated, not hand-maintained -
+`python -m models.build_round_ratio_table` refits it from the database and
+re-runs both held-out checks, so a future reingest can't leave it silently
+stale.
+
 **Grounded counsellor.** The system routes a question to structured lookup
 (a named college, reusing the exact forecast and probability numbers
 `/recommend` already computed) or semantic retrieval (FAISS similarity, for

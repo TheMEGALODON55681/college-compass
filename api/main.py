@@ -41,6 +41,7 @@ from models.admission_probability import load_artifacts as load_probability_arti
 from models.counsellor import generate_answer
 from models.counsellor_retrieval import build_context_bundle, build_lookup_cache
 from models.ranker import load_ranker, score_candidates_for_student
+from models.round_forecast import project_rounds
 from models.similarity import get_similar_colleges, load_similarity_index
 from models.trend import classify_trend
 
@@ -175,6 +176,16 @@ def _row_to_result(rank_order, row, student_rank, probability_artifacts, categor
         print(f"[api] trend classification failed for {key}: {exc}")
         trend = None
 
+    # Additive-only field (docs/Rules.md section 7), same pattern as trend
+    # above: a projection failure drops just this row's rounds array, never
+    # the response. Computed on demand from predicted_closing_rank, nothing
+    # queried or materialized (docs/Rules.md section 8).
+    try:
+        rounds = project_rounds(int(row["predicted_closing_rank"]), category, row["branch_name"])
+    except Exception as exc:
+        print(f"[api] round projection failed for {key}: {exc}")
+        rounds = None
+
     return {
         "rank_order": rank_order,
         "college_id": row["college_id"],
@@ -192,6 +203,7 @@ def _row_to_result(rank_order, row, student_rank, probability_artifacts, categor
         "admission_probability": admission_probability,
         "probability_is_approximate": not has_lag,
         "trend": trend,
+        "rounds": rounds,
     }
 
 
