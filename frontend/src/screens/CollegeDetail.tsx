@@ -13,6 +13,7 @@ import { StatusPill } from "../components/StatusPill";
 import { ProbabilityMeter } from "../components/ProbabilityMeter";
 import { CutoffTrendChart } from "../components/CutoffTrendChart";
 import { TrendBadge } from "../components/TrendBadge";
+import { RoundProjection } from "../components/RoundProjection";
 import { SimilarColleges } from "../components/SimilarColleges";
 import { InlineError } from "../components/states/InlineError";
 
@@ -175,6 +176,8 @@ export function CollegeDetail() {
             {chartState === "ready" && <div style={{ marginTop: 12 }}><CutoffTrendChart history={history} /></div>}
           </div>
         </motion.div>
+
+        <RoundProjection rounds={college.rounds} studentRank={session.student.rank} />
 
         {/* Why */}
         <motion.div

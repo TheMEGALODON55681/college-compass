@@ -30,6 +30,11 @@ export interface Trend {
   reason: string | null;
 }
 
+export interface RoundProjectionPoint {
+  round: number;
+  projected_closing_rank: number;
+}
+
 export interface CollegeResult {
   rank_order: number;
   college_id: string;
@@ -49,6 +54,9 @@ export interface CollegeResult {
   // Additive and optional (docs/Rules.md section 7): absent when the
   // classifier raised for this row, never a reason to drop the row itself.
   trend: Trend | null;
+  // Same contract as trend: absent when the round projection raised for
+  // this row, never a reason to drop the row itself.
+  rounds: RoundProjectionPoint[] | null;
 }
 
 export interface RecommendResponse {

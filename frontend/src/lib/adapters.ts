@@ -177,6 +177,7 @@ function toCollege(row: CollegeResult, studentRank: number): College {
     status: BAND_TO_TIER[row.band],
     closingRank: row.predicted_closing_rank,
     trend: row.trend,
+    rounds: row.rounds,
     why: buildWhy(row, studentRank),
     collegeId: row.college_id,
     programId: row.program_id,

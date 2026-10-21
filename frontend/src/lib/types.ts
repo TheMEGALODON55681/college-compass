@@ -1,4 +1,4 @@
-import type { Trend } from "./api";
+import type { RoundProjectionPoint, Trend } from "./api";
 
 export type Tier = "likely" | "fair" | "reach";
 
@@ -22,6 +22,7 @@ export interface College {
   programId?: string;
   quotaUsed?: string;
   trend?: Trend | null;
+  rounds?: RoundProjectionPoint[] | null;
 }
 
 export interface Student {

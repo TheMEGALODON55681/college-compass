@@ -1,5 +1,65 @@
 # Known issues
 
+## Deploys since 799aa7a fail at startup
+
+Production still runs d051b37 (2026-08-15). Render built the next two commits,
+799aa7a (2026-09-14) and 7423445 (2026-09-15), and both failed with "Exited
+with status 3 while running your code". The live API therefore has no trend
+labels and no round projections.
+
+Commit 799aa7a removed `college_compass.db` from git and added `*.db` to
+`.gitignore`. The backend reads its reference tables from that file at boot:
+the `lifespan` hook in `api/main.py` calls `load_reference_tables()`, which
+runs `SELECT * FROM colleges`. A fresh Render checkout has no database, so
+startup raises and uvicorn exits with status 3.
+
+Reproduced on 2026-10-21 from a clean extract of HEAD's tracked files
+(`git archive`) with no database present. SQLite created an empty file and
+startup failed:
+
+    sqlite3.OperationalError: no such table: colleges
+    [SQL: SELECT * FROM colleges]
+      File "api/main.py", line 65, in lifespan
+        reference_tables = load_reference_tables()
+      File "api/eligibility.py", line 60, in load_reference_tables
+        colleges = pd.read_sql("SELECT * FROM colleges", engine)
+    pandas.errors.DatabaseError: Execution failed on sql 'SELECT * FROM colleges'
+    ERROR:    Application startup failed. Exiting.
+
+The process exit code was 3. The repository holds no Render configuration (no
+`render.yaml`, `Procfile` or build script), so the build and start commands
+exist only in the Render dashboard.
+
+Every push to `main` triggers another deploy that fails the same way, so hold
+pushes until the fix lands.
+
+Planned fix (Phase 1): publish the database as a compressed release asset.
+The Render build downloads it and checks a pinned SHA-256 before boot.
+
+## Keep-warm job is disabled
+
+The cron-job.org job "college-compass keep-warm" sends
+`GET https://college-compass-il7k.onrender.com/health` every 5 minutes with a
+30 second timeout. Its status is Inactive. The last run, on 2026-09-26, ended
+in "Failed (HTTP error)" after 692 ms, and cron-job.org then disabled the job.
+The execution history is past its retention window.
+
+A 692 ms failure is a quick error response. That points at Render answering
+with an error status during a restart or a failed redeploy. A slow cold start
+would time out instead.
+
+On 2026-10-21 `GET /health` returned 200 in 0.44 s. `HEAD /health` returned
+405, because the route accepts only GET. A pinger set to HEAD would log that
+as an HTTP error. The job is set to GET, so this is not shown to be the cause.
+
+With the job off, the free instance sleeps when idle and the next visitor
+waits through a cold boot with no message on screen. The README's limitations
+list says the ping runs every ten minutes; the job is off and was set to 5.
+
+Planned fix (Phase 1): `/health` answers while the models load and answers
+HEAD. After a deploy succeeds, re-enable the job at 10 minutes, 30 second
+timeout, with failure notification on.
+
 ## Grounding validation checks membership in one flat pool, not per-field or per-college attribution
 
 `validate_grounding` (`models/counsellor.py`) extracts every numeric token
@@ -223,20 +283,10 @@ lookups, which were never the bottleneck), not for `/recommend`'s
 per-request cost. The index is still worth having and this number is still
 worth knowing, but it is informational now, not a blocker.
 
-## college_compass.db is tracked in git
+## college_compass.db tracked in git (closed)
 
-Found during Phase 2's repo-hygiene check (forecast-depth upgrade),
-2026-09-14: `git ls-files --error-unmatch college_compass.db` confirms the
-file is tracked, not ignored. It is currently 101.5MiB on disk and grows
-with every reingest (60.3MiB before the most recent one, per `git diff
---stat`).
-
-A binary SQLite file in git history bloats the repository on every clone,
-makes every schema change an opaque diff instead of a reviewable one, and
-lets the tracked database silently drift from what `db/schema.sql` actually
-describes, since nothing enforces that the two stay in sync.
-
-Not fixed here. Untracking it (`git rm --cached college_compass.db` plus a
-`.gitignore` entry) is a git write, and per docs/Rules.md section 2 that is
-the developer's to run, not something to do automatically. Flagged
-directly to the developer this session as well.
+Closed 2026-10-21. Commit 799aa7a removed `college_compass.db` from git, and
+`.gitignore` now lists `*.db`, so a fresh clone no longer carries the 100 MB
+binary. The same change removed the only copy of the database that a deploy
+could reach, and production deploys have failed since. See "Deploys since
+799aa7a fail at startup".
