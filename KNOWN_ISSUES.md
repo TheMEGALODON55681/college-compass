@@ -30,11 +30,17 @@ The process exit code was 3. The repository holds no Render configuration (no
 `render.yaml`, `Procfile` or build script), so the build and start commands
 exist only in the Render dashboard.
 
-Every push to `main` triggers another deploy that fails the same way, so hold
-pushes until the fix lands.
+Fix, in code and not yet deployed: `scripts/fetch_db.py` downloads the
+database from a GitHub release asset during the Render build, decompresses
+it, and checks a pinned SHA-256. A failed download or a checksum mismatch
+fails the build. A failed model load now also exits with status 3 after the
+server has opened its port, so a bad database still fails the deploy. The
+README sections "Build the database" and "The live deployment" carry the
+steps.
 
-Planned fix (Phase 1): publish the database as a compressed release asset.
-The Render build downloads it and checks a pinned SHA-256 before boot.
+This entry closes when a Render deploy of the fixed commit succeeds and live
+`/recommend` rows carry `trend` and `rounds`. Until then every push to `main`
+triggers a deploy that fails the same way, so hold pushes.
 
 ## Keep-warm job is disabled
 
@@ -53,12 +59,41 @@ On 2026-10-21 `GET /health` returned 200 in 0.44 s. `HEAD /health` returned
 as an HTTP error. The job is set to GET, so this is not shown to be the cause.
 
 With the job off, the free instance sleeps when idle and the next visitor
-waits through a cold boot with no message on screen. The README's limitations
-list says the ping runs every ten minutes; the job is off and was set to 5.
+waits through a cold boot with no message on screen. The README says the ping
+runs every ten minutes. That becomes true when the job is re-enabled at the
+new interval.
 
-Planned fix (Phase 1): `/health` answers while the models load and answers
-HEAD. After a deploy succeeds, re-enable the job at 10 minutes, 30 second
-timeout, with failure notification on.
+Fix, in code and not yet deployed: `/health` answers GET and HEAD while the
+models load, reports `models_loaded: false` until they finish, and adds
+`rss_mb` and `rss_peak_mb`. After a deploy succeeds, re-enable the job: GET
+`/health`, every 10 minutes, 30 second timeout, failure notification on. This
+entry closes once the job has run clean against the new deploy.
+
+## A request during startup gets a bare 503
+
+The backend now opens its port before the models finish loading. Any request
+that needs a model gets a 503 ("models are still loading, try again shortly")
+until the load completes. Before this change the same request waited for the
+whole boot and then succeeded. The frontend shows the 503 message as an
+ordinary error and the student has to retry. A waking-up screen with an
+automatic retry is planned for the frontend polish phase.
+
+## Requests answered during the background load raise boot memory on Windows
+
+Measured on Windows on 2026-10-21, working set right after the models load.
+Seven boots of the previous code read 250.8 to 252.5 MB. Loading the same
+code synchronously reads about 250 MB, but nothing can be answered during a
+synchronous load. With the background load, the reading depends on how many
+requests the server answers while loading: 3 to 4 `/health` polls gave 252.4
+and 257.7 MB, 31 to 36 polls gave 262.7 to 265.8 MB, and 48 to 54 polls gave
+267.3 to 270.0 MB. Small request objects allocated beside the loader's large
+ones appear to pin memory that the loader later frees. A real pinger and the
+platform's port check send a handful of requests during a load, so the
+expected cost is a few MB, not the 16 to 19 MB the densest harness runs showed.
+Peak working set at boot is unchanged at about 640 MB.
+
+The Linux effect is not measured. The live `rss_mb` and `rss_peak_mb` on
+Render's `/health` settle whether it matters for the 512 MB limit.
 
 ## Grounding validation checks membership in one flat pool, not per-field or per-college attribution
 
@@ -240,7 +275,12 @@ source.
 This is binding on the round feature: Phase 5 and Phase 6's held-out year
 must keep coming from 2016-2022, exactly as Phase 0 already concluded.
 
-## Postgres schema has no indexes beyond the ones SQLAlchemy creates for PK/FK
+## Postgres schema has no indexes beyond the ones SQLAlchemy creates for PK/FK (closed for production)
+
+Closed 2026-10-21 as not applicable to production: the live service runs
+SQLite from the release database, and no Render Postgres exists, so there is
+no Postgres instance to time. The measurement script stays for anyone who
+moves to Postgres later.
 
 **Partially addressed (Phase 2, forecast-depth upgrade).** `db/models.py` now
 declares `ix_cutoffs_college_program_category_quota`, a composite index on
@@ -260,18 +300,17 @@ index alone might suggest, because the settled-round selection is a window
 function (`ROW_NUMBER() OVER (PARTITION BY ... )`) over the filtered rows,
 which still has to run after the index narrows the scan.
 
-**Postgres: not yet measured.** No Postgres instance or credentials are
-available in the environment these phases run in. `db/measure_cutoff_index.py`
-is written and ready - it takes its target from the `DATABASE_URL`
+**Postgres: not measured, and not needed for production.**
+`db/measure_cutoff_index.py` takes its target from the `DATABASE_URL`
 environment variable only, never a command-line argument, so a connection
 string never lands in shell history:
 
     DATABASE_URL=postgresql://user:pass@host:5432/dbname python -m db.measure_cutoff_index
 
-It is idempotent (`checkfirst=True` on the index creation) and read-only
-otherwise, so it's safe to run against the real Render Postgres instance
-directly. The developer can still run this and report the numbers back for
-the record; this entry stays open until then.
+The script is idempotent (`checkfirst=True` on the index creation) and
+otherwise read-only, but the index is a plain `CREATE INDEX`, which blocks
+writes to `cutoffs` while it builds. Run it against a copy or in a quiet
+window, not against a live instance under traffic.
 
 **No longer gates the trend classifier (Phase 2, updated 2026-09-14).**
 `/recommend` no longer calls `get_cutoff_history_bulk()` per request at all

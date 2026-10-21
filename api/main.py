@@ -16,6 +16,8 @@ and ranker, exactly as they exist.
 import os
 import re
 import sys
+import threading
+import traceback
 from contextlib import asynccontextmanager
 from dataclasses import asdict
 from pathlib import Path
@@ -55,12 +57,20 @@ SIMILAR_NOTE = "Similar by type, location, ranking, and programs offered - not a
 model_state = {}
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    backend_name = get_backend_name()
-    print(f"[api] database backend: {backend_name} ({redact_database_url()})")
-    model_state["backend_name"] = backend_name
+def _boot_failed():
+    """Called from the loader's except block. The load runs in a background
+    thread so the port binds first; an exception there would only end the
+    thread and leave a server that answers /health forever without models,
+    which a deploy check would call healthy. Exit status 3 is what a failed
+    lifespan gave uvicorn before, so a broken deploy still fails loudly.
+    """
+    traceback.print_exc()
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(3)
 
+
+def _load_models():
     print("[api] loading reference data and forecasts...")
     reference_tables = load_reference_tables()
     forecasts = build_forecasts()
@@ -80,17 +90,21 @@ async def lifespan(app: FastAPI):
     print("[api] loading counsellor college/branch name lookup cache...")
     counsellor_lookup = build_lookup_cache()
 
-    model_state["reference_tables"] = reference_tables
-    model_state["merged_forecasts"] = merged_forecasts
-    model_state["ranker"] = ranker
-    model_state["probability_artifacts"] = probability_artifacts
-    model_state["known_states"] = set(reference_tables[0]["state"].dropna().unique().tolist())
-    model_state["similarity_bundle"] = similarity_bundle
-    model_state["counsellor_lookup"] = counsellor_lookup
-
     print("[api] warming up the ranker's first-prediction cost at boot, not on the first real request...")
     warmup_student = StudentProfile(jee_rank=50000, category="OPEN")
     score_candidates_for_student(ranker, warmup_student, merged_forecasts, reference_tables)
+
+    # Published last, in one update, so /health only reports models_loaded
+    # once every endpoint can actually serve (warm-up included).
+    model_state.update(
+        reference_tables=reference_tables,
+        merged_forecasts=merged_forecasts,
+        ranker=ranker,
+        probability_artifacts=probability_artifacts,
+        known_states=set(reference_tables[0]["state"].dropna().unique().tolist()),
+        similarity_bundle=similarity_bundle,
+        counsellor_lookup=counsellor_lookup,
+    )
 
     # The ONNX encoder (models/onnx_encoder.py) is deliberately not loaded
     # here - it's only needed for /chat's semantic retrieval path, and even
@@ -99,6 +113,25 @@ async def lifespan(app: FastAPI):
     # lazily on first semantic /chat call and caches it in model_state same
     # as every other artifact here.
     print("[api] models loaded and ready")
+
+
+def _load_in_background():
+    try:
+        _load_models()
+    except Exception:
+        _boot_failed()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    backend_name = get_backend_name()
+    print(f"[api] database backend: {backend_name} ({redact_database_url()})")
+    model_state["backend_name"] = backend_name
+
+    # Heavy load off the event loop so the port binds and /health answers
+    # during it. Until it finishes, every endpoint that needs a model returns
+    # its existing 503.
+    threading.Thread(target=_load_in_background, daemon=True).start()
     yield
     model_state.clear()
 
@@ -138,10 +171,34 @@ class RecommendRequest(BaseModel):
         return v
 
 
-@app.get("/health")
-def health():
+def _require_loaded():
+    if "ranker" not in model_state:
+        raise HTTPException(status_code=503, detail="models are still loading, try again shortly")
+
+
+def _memory_readout(status_path="/proc/self/status"):
+    """Resident memory and its high-water mark in MB, from /proc on Linux;
+    null for both elsewhere. Render's free tier has no memory graph, so this
+    is the only way to read the real figure from production. The peak is the
+    one an OOM kill acts on, and a boot peak is gone by the time anyone polls.
+    """
+    readout = {"rss_mb": None, "rss_peak_mb": None}
+    fields = {"VmRSS": "rss_mb", "VmHWM": "rss_peak_mb"}
+    try:
+        with open(status_path) as f:
+            for line in f:
+                name, _, rest = line.partition(":")
+                if name in fields:
+                    readout[fields[name]] = round(int(rest.split()[0]) / 1024, 1)
+    except OSError:
+        pass
+    return readout
+
+
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health():
     loaded = "ranker" in model_state and "merged_forecasts" in model_state
-    return {"status": "ok" if loaded else "not_ready", "models_loaded": loaded}
+    return {"status": "ok" if loaded else "not_ready", "models_loaded": loaded, **_memory_readout()}
 
 
 @app.get("/meta")
@@ -152,6 +209,7 @@ def meta():
     endpoint has been configured - presence only, never the value, so a real
     key or internal endpoint is never echoed back to a client.
     """
+    _require_loaded()
     return {
         "categories": VALID_CATEGORIES,
         "states": sorted(model_state.get("known_states", [])),
@@ -171,7 +229,7 @@ def _row_to_result(rank_order, row, student_rank, probability_artifacts, categor
     # drops just this row's trend object, never the response it's attached to.
     key = (row["college_id"], row["program_id"], category, row["quota_used"])
     try:
-        trend = asdict(classify_trend(history_cache.get(key, [])))
+        trend = None if history_cache is None else asdict(classify_trend(history_cache.get(key, [])))
     except Exception as exc:
         print(f"[api] trend classification failed for {key}: {exc}")
         trend = None
@@ -212,8 +270,7 @@ def compute_recommendation(request: RecommendRequest):
     PDF from the exact same eligibility/ranker/probability output instead of
     recomputing anything.
     """
-    if "ranker" not in model_state:
-        raise HTTPException(status_code=503, detail="models are still loading, try again shortly")
+    _require_loaded()
 
     if request.home_state and request.home_state not in model_state["known_states"]:
         raise HTTPException(
@@ -289,6 +346,7 @@ def similar(college_id: str):
     quality judgment - see SIMILAR_NOTE. Loads on demand, independent of
     /recommend, since it's a "see more" affordance, not part of the main flow.
     """
+    _require_loaded()
     similarity_bundle = model_state.get("similarity_bundle")
     if similarity_bundle is None:
         raise HTTPException(status_code=503, detail="similarity index is not built yet")
@@ -478,14 +536,32 @@ def build_cutoff_history_cache(database_url=None):
     return cache
 
 
+_cutoff_cache_lock = threading.Lock()
+
+
 def _get_cutoff_history_cache():
     """Lazy, cached in model_state exactly like _get_embedding_model in
     models/counsellor_retrieval.py - built on the first /recommend call that
     needs it, not at import time and not eagerly at startup.
+
+    Trend is an additive field (docs/Rules.md section 8), so a failed build
+    returns None, which _row_to_result turns into trend: null, instead of
+    failing /recommend. The failure is not cached: the next request retries.
+    The lock makes concurrent first requests wait for one build instead of
+    each making their own (that transient cost ~37 MB extra for four at once).
     """
-    if "cutoff_history_cache" not in model_state:
-        model_state["cutoff_history_cache"] = build_cutoff_history_cache()
-    return model_state["cutoff_history_cache"]
+    cache = model_state.get("cutoff_history_cache")
+    if cache is not None:
+        return cache
+    with _cutoff_cache_lock:
+        cache = model_state.get("cutoff_history_cache")
+        if cache is None:
+            try:
+                cache = model_state["cutoff_history_cache"] = build_cutoff_history_cache()
+            except Exception as exc:
+                print(f"[api] cutoff history cache build failed, serving without trends: {exc}")
+                return None
+    return cache
 
 
 @app.get("/cutoffs")

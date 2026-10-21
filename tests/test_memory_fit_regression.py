@@ -26,6 +26,7 @@ clone with a different .env.
 import atexit
 import json
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -52,7 +53,19 @@ def _client():
         context_manager = TestClient(app)
         _holder["client"] = context_manager.__enter__()
         atexit.register(context_manager.__exit__, None, None, None)
+        _wait_until_loaded(_holder["client"])
     return _holder["client"]
+
+
+def _wait_until_loaded(client, timeout=180):
+    """The lifespan loads models in a background thread now (so /health
+    answers during boot), which means entering the client no longer implies
+    they are loaded.
+    """
+    deadline = time.time() + timeout
+    while not client.get("/health").json()["models_loaded"]:
+        assert time.time() < deadline, "models did not finish loading"
+        time.sleep(0.25)
 
 
 def _load_fixture(name):

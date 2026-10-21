@@ -21,6 +21,7 @@ from fastapi.testclient import TestClient
 
 import api.main as main_module
 from api.main import app
+from test_memory_fit_regression import _wait_until_loaded
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures" / "baseline"
 
@@ -32,6 +33,7 @@ def _client():
         context_manager = TestClient(app)
         _holder["client"] = context_manager.__enter__()
         atexit.register(context_manager.__exit__, None, None, None)
+        _wait_until_loaded(_holder["client"])
     return _holder["client"]
 
 

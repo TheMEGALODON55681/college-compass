@@ -86,8 +86,26 @@ and the full audit is in
 A fresh clone has no `college_compass.db`: it is gitignored, along with the
 `data/raw/` and `data/processed/` directories the pipeline builds it from.
 Every trained model artifact (regressor, ranker, calibrator, FAISS index)
-still ships with the repo and needs none of this. Do this once, from the
-repo root, before [Quickstart](#quickstart):
+still ships with the repo and needs none of this. Do one of the two paths
+below, once, from the repo root, before [Quickstart](#quickstart).
+
+**Download the published copy (about a minute).** The built database is a
+gzip asset on a GitHub release. `scripts/fetch_db.py` downloads it,
+decompresses it, and checks the result against a SHA-256 pinned in the
+script:
+
+```
+pip install -r requirements.txt
+python scripts/fetch_db.py
+```
+
+A failed download or a checksum mismatch raises and leaves no database
+behind. If `college_compass.db` already exists and matches, the script does
+nothing. If it exists and differs, for example a copy you rebuilt, the script
+refuses to overwrite it. Render's build runs this same script (see
+[The live deployment](#the-live-deployment)).
+
+**Or rebuild it from the public sources (a few minutes).**
 
 ```
 pip install -r requirements.txt
@@ -110,8 +128,19 @@ python -m data_pipeline.build_dataset
   report naming exactly which year and institute-type combinations have
   real data.
 
-Expect this to take a few minutes; each step logs its own progress as it
-runs.
+Each step logs its own progress as it runs.
+
+**Publishing a new database.** After a rebuild, compress it, hash the
+uncompressed file, and attach the `.gz` to a new GitHub release:
+
+```
+python -m gzip college_compass.db
+python -c "import hashlib; print(hashlib.sha256(open('college_compass.db', 'rb').read()).hexdigest())"
+```
+
+Then set `DB_URL` and `DB_SHA256` at the top of `scripts/fetch_db.py`. The
+checksum covers the decompressed file, so any gzip level produces a valid
+asset.
 
 ## Quickstart
 
@@ -166,6 +195,25 @@ for the frontend, a separate Render service for the backend. The
 frontend's `VITE_API_BASE` points at the Render backend's origin, and the
 backend's `CORS_ORIGINS` allows the Vercel origin. That's the whole
 connection between them.
+
+Render's build command installs the dependencies, then fetches the database
+(the file is not in git):
+
+```
+pip install -r requirements.txt && python scripts/fetch_db.py
+```
+
+The service opens its port first and loads the models in a background
+thread. `GET` and `HEAD /health` answer while that runs and report
+`models_loaded: false` until it finishes; every endpoint that needs a model
+returns 503 until then. If the load fails, the process exits with status 3,
+so a broken deploy fails instead of going live without models. On Linux,
+`/health` also reports `rss_mb` and `rss_peak_mb` (current and peak resident
+memory), because Render's free plan has no memory graph. Both are `null`
+elsewhere.
+
+A cron-job.org job keeps the free instance awake: `GET /health` every 10
+minutes with a 30 second timeout, failure notification on.
 
 ## How it works
 
@@ -293,8 +341,10 @@ Stated plainly, because a hidden limitation is worse than a stated one.
   the slow one.** It loads the sentence encoder on demand, the same
   tradeoff described in [Quickstart](#quickstart).
 - **A cold backend takes time to wake up.** A keep-warm ping hits `/health`
-  every ten minutes, so this should be rare, but the free tier makes it
-  possible.
+  every ten minutes, so this should be rare. After an idle spell or a
+  redeploy, the first request can still land while the models load. It gets
+  a 503 ("models are still loading, try again shortly") and the student
+  retries by hand. A proper waking-up screen is planned.
 
 Full detail on all of the above, plus what's already been tested and what
 hasn't, is in [KNOWN_ISSUES.md](KNOWN_ISSUES.md).

@@ -13,6 +13,10 @@ Idempotent and safe to rerun: the index is created with checkfirst=True, so
 running this again after the index already exists just reports the current
 (indexed) timing with no "before" figure, rather than erroring.
 
+Not safe to point at a live Postgres instance during traffic: the index is a
+plain CREATE INDEX, not CREATE INDEX CONCURRENTLY, so it blocks writes to
+cutoffs while it builds. Run it against a copy, or in a quiet window.
+
 Usage: set DATABASE_URL to the target (unset defaults to the shipped SQLite
 file, no setup needed), then:
 
