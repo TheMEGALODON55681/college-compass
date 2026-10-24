@@ -1,5 +1,52 @@
 # Known issues
 
+## A deploy goes live, then runs out of memory at boot
+
+On 2026-10-23 Render built commit 5741275, fetched the database from the
+`db-v1` release and reported the service live at 22:34 IST. Within a minute it
+logged "Ran out of memory (used over 512MB) while running your code", again at
+22:35, and then restarted about every 90 seconds. `/health` returned an error
+page. The developer rolled production back to d051b37.
+
+The background load moved the memory peak to after the platform's port check.
+Render marks a deploy live once the port is bound and `/health` answers 200,
+retires the old instance, and only then does the load reach its peak. Before
+the background load, an out-of-memory kill during boot failed the deploy and
+the old instance kept serving. Every run in Render's log died before it printed
+"loading trained ranker...", so the peak sat in the first load step.
+
+Profiling on Windows found it in `build_forecasts`. `SELECT * FROM cutoffs`
+read all 352,432 rows and 11 columns at once, then the code kept a filtered
+copy (185,945 Gender-Neutral rows from 2018 on) and made another while
+collapsing to one row per group and year. That one step raised the peak working
+set from 216 MB to 637 MB. Nothing after it moved the peak.
+
+Fix, in code and not yet deployed:
+
+- `/ready` returns 503 until every model is published and 200 after. With
+  Render's Health Check Path set to `/ready`, a boot that runs out of memory
+  fails the deploy and the old instance keeps serving. `/health` is unchanged.
+- `load_serving_cutoffs()` (`models/regressor_dataset.py`) filters in SQL, reads
+  the 7 columns the features use, and streams the rows in 20,000-row chunks.
+  `build_forecasts` output is identical to the old read: same rows, same order,
+  same dtypes.
+- The boot calls pyarrow's `release_unused()` after the forecast merge. Without
+  it Arrow's allocator kept about 50 MB of freed read buffers for the life of
+  the process.
+
+Measured on Windows with Render's thread settings, real uvicorn: boot peak
+working set 639 to 640 MB before, 320 to 324 MB after. Settled after boot 254 to
+259 MB (258 to 264 MB before). After one `/recommend` and one semantic `/chat`
+384 to 389 MB, lifetime peak 409 to 412 MB. Not measured on Linux under a
+512 MB cap: Docker is not installed on the development laptop, and the
+developer chose Windows-only measurement. Windows working set is a regression
+signal, not Render's number.
+
+This entry closes when a deploy of the fixed commit goes live after the load
+finishes and the live `/health` shows `rss_peak_mb` well under 512 at boot and
+after one semantic `/chat`. Set the Health Check Path to `/ready` before the
+next push.
+
 ## Deploys since 799aa7a fail at startup
 
 Production still runs d051b37 (2026-08-15). Render built the next two commits,
@@ -38,9 +85,10 @@ server has opened its port, so a bad database still fails the deploy. The
 README sections "Build the database" and "The live deployment" carry the
 steps.
 
-This entry closes when a Render deploy of the fixed commit succeeds and live
-`/recommend` rows carry `trend` and `rounds`. Until then every push to `main`
-triggers a deploy that fails the same way, so hold pushes.
+The 2026-10-23 deploy of 5741275 fetched the database and started the service,
+so this cause is fixed. That deploy then ran out of memory (previous entry).
+This entry closes when a deploy of the fixed commit stays up and live
+`/recommend` rows carry `trend` and `rounds`.
 
 ## Keep-warm job is disabled
 
@@ -66,8 +114,9 @@ new interval.
 Fix, in code and not yet deployed: `/health` answers GET and HEAD while the
 models load, reports `models_loaded: false` until they finish, and adds
 `rss_mb` and `rss_peak_mb`. After a deploy succeeds, re-enable the job: GET
-`/health`, every 10 minutes, 30 second timeout, failure notification on. This
-entry closes once the job has run clean against the new deploy.
+`/health`, every 10 minutes, 30 second timeout, failure notification on. The
+job stays on `/health`; `/ready` is a separate route for Render's health check.
+This entry closes once the job has run clean against the new deploy.
 
 ## A request during startup gets a bare 503
 
@@ -90,7 +139,8 @@ and 257.7 MB, 31 to 36 polls gave 262.7 to 265.8 MB, and 48 to 54 polls gave
 ones appear to pin memory that the loader later frees. A real pinger and the
 platform's port check send a handful of requests during a load, so the
 expected cost is a few MB, not the 16 to 19 MB the densest harness runs showed.
-Peak working set at boot is unchanged at about 640 MB.
+Peak working set at boot was about 640 MB then and is about 322 MB after the
+memory fix (first entry).
 
 The Linux effect is not measured. The live `rss_mb` and `rss_peak_mb` on
 Render's `/health` settle whether it matters for the 512 MB limit.

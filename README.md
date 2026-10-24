@@ -212,6 +212,17 @@ so a broken deploy fails instead of going live without models. On Linux,
 memory), because Render's free plan has no memory graph. Both are `null`
 elsewhere.
 
+Set the service's Health Check Path to `/ready` (Settings, Health Check
+Path). `/ready` returns 503 until every model is loaded and 200 after. With
+it set, Render keeps the old instance serving until the new one answers 200,
+so a boot that runs out of memory fails the deploy and the live site stays up.
+`/health` stays 200 during the load, for the keep-warm job.
+
+The boot reads only the cutoff rows and columns the forecast uses, in chunks,
+and hands the freed Arrow buffers back to the system. On a Windows
+measurement that cut the boot peak from about 640 MB to about 320 MB. The live
+`rss_peak_mb` on `/health` is the number that counts against the 512 MB limit.
+
 A cron-job.org job keeps the free instance awake: `GET /health` every 10
 minutes with a 30 second timeout, failure notification on.
 

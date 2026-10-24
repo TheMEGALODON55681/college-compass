@@ -27,9 +27,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pandas as pd
+import pyarrow as pa
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import bindparam, text
@@ -75,6 +76,9 @@ def _load_models():
     reference_tables = load_reference_tables()
     forecasts = build_forecasts()
     merged_forecasts = merge_forecasts_with_colleges(forecasts, reference_tables[0])
+    # Arrow's allocator keeps the freed read buffers (about 50 MB here) until
+    # told to hand them back, and they would sit in RSS for the process's life.
+    pa.default_memory_pool().release_unused()
 
     print("[api] loading trained ranker...")
     ranker = load_ranker()
@@ -195,10 +199,27 @@ def _memory_readout(status_path="/proc/self/status"):
     return readout
 
 
-@app.api_route("/health", methods=["GET", "HEAD"])
-async def health():
+def _health_body():
     loaded = "ranker" in model_state and "merged_forecasts" in model_state
     return {"status": "ok" if loaded else "not_ready", "models_loaded": loaded, **_memory_readout()}
+
+
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health():
+    """Liveness: 200 as soon as the port binds, models or not, so the
+    keep-warm pinger never sees an error during a cold boot."""
+    return _health_body()
+
+
+@app.api_route("/ready", methods=["GET", "HEAD"])
+async def ready():
+    """Readiness: 503 until every model is published. Point Render's Health
+    Check Path here so a deploy only replaces the old instance once the new
+    one can serve, and a boot that runs out of memory fails the deploy
+    instead of taking the live site down.
+    """
+    body = _health_body()
+    return JSONResponse(body, status_code=200 if body["models_loaded"] else 503)
 
 
 @app.get("/meta")

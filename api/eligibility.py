@@ -25,7 +25,7 @@ import pandas as pd
 
 import models.cutoff_regressor as cutoff_regressor
 from db.connection import get_database_url, get_engine
-from models.regressor_dataset import load_regressor_training_data
+from models.regressor_dataset import load_serving_cutoffs
 
 SAFE_MARGIN_RATIO = 0.15
 DREAM_REACH_RATIO = 0.10
@@ -69,7 +69,7 @@ def build_forecasts(database_url=None):
     A serving path, not a training script - run `python -m models.cutoff_regressor`
     first if models/artifacts/ doesn't exist yet.
     """
-    _, filtered = load_regressor_training_data(database_url)
+    filtered = load_serving_cutoffs(database_url)
     group_year = cutoff_regressor.collapse_to_one_row_per_group_year(filtered)
     nirf_df = cutoff_regressor._load_nirf(database_url)
     full_df = cutoff_regressor.build_features(group_year, nirf_df)

@@ -15,6 +15,7 @@ import threading
 import time
 from pathlib import Path
 
+import pandas as pd
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -71,6 +72,61 @@ def test_health_answers_fast_while_models_load(stalled_boot):
         assert client.get("/similar/any-college").status_code == 503
         assert client.post("/recommend", json={"jee_rank": 12480, "category": "OPEN"}).status_code == 503
         assert client.post("/chat", json={"question": "Which IITs are best for computer science?"}).status_code == 503
+
+
+def test_ready_is_503_until_models_load_then_200(stalled_boot):
+    """Render's health check path. /health stays 200 during the load for the
+    pinger; /ready is what keeps the old instance serving until this one can.
+    """
+    with TestClient(app) as client:
+        for method in (client.get, client.head):
+            assert method("/ready").status_code == 503
+        body = client.get("/ready").json()
+        assert body["status"] == "not_ready"
+        assert body["models_loaded"] is False
+
+        main_module.model_state.update(ranker=object(), merged_forecasts=object())
+
+        for method in (client.get, client.head):
+            assert method("/ready").status_code == 200
+        body = client.get("/ready").json()
+        assert body["status"] == "ok"
+        assert body["models_loaded"] is True
+        assert client.get("/health").status_code == 200
+
+
+def test_ready_waits_for_the_whole_load_including_warmup(monkeypatch):
+    """The real _load_models with cheap fakes, blocked inside the ranker
+    warm-up (its last step). /ready must stay 503 until the single publish
+    that follows, so a deploy never swaps in an instance that cannot serve.
+    """
+    in_warmup = threading.Event()
+    release = threading.Event()
+
+    def blocked_warmup(*args, **kwargs):
+        in_warmup.set()
+        release.wait(timeout=10)
+
+    monkeypatch.setattr(main_module, "model_state", {})
+    monkeypatch.setattr(main_module, "load_reference_tables", lambda: (pd.DataFrame({"state": ["Delhi"]}), None, None))
+    monkeypatch.setattr(main_module, "build_forecasts", lambda: None)
+    monkeypatch.setattr(main_module, "merge_forecasts_with_colleges", lambda forecasts, colleges: "merged")
+    monkeypatch.setattr(main_module, "load_ranker", lambda: "ranker")
+    monkeypatch.setattr(main_module, "load_probability_artifacts", lambda: "probability")
+    monkeypatch.setattr(main_module, "load_similarity_index", lambda: None)
+    monkeypatch.setattr(main_module, "build_lookup_cache", lambda: {})
+    monkeypatch.setattr(main_module, "score_candidates_for_student", blocked_warmup)
+
+    with TestClient(app) as client:
+        assert in_warmup.wait(timeout=10), "loader never reached the warm-up"
+        assert client.get("/ready").status_code == 503
+        assert client.get("/health").json()["models_loaded"] is False
+
+        release.set()
+        deadline = time.time() + 10
+        while client.get("/ready").status_code != 200:
+            assert time.time() < deadline, "/ready never turned 200 after the load finished"
+            time.sleep(0.05)
 
 
 def test_failed_load_exits_instead_of_serving_forever(stalled_boot):
