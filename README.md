@@ -309,10 +309,10 @@ re-runs both held-out checks, so a future reingest can't leave it silently
 stale.
 
 **Grounded counsellor.** The system routes a question to structured lookup
-(a named college, reusing the exact forecast and probability numbers
-`/recommend` already computed) or semantic retrieval (FAISS similarity, for
-fuzzier questions), building a context bundle where every fact carries its
-own source. A closing rank or probability records its college, branch,
+(a named college: its latest actual closing ranks, plus the forecast and
+probability numbers `/recommend` already computed when the student gave a rank)
+or semantic retrieval (FAISS similarity, for fuzzier questions), building a
+context bundle where every fact carries its own source. A closing rank or probability records its college, branch,
 category, quota, seat pool, year and round. The language model answers from
 that bundle, and a code-level validator checks every number in the answer
 against it before the answer is ever returned. The validator reads which
@@ -351,11 +351,13 @@ Stated plainly, because a hidden limitation is worse than a stated one.
 - **A counsellor question about one college, with no rank given, sends
   every Gender-Neutral cutoff row of its latest year.** That is about 4,800
   tokens for IIT Delhi and about 7,200 for IIT Patna, the largest of the 101
-  colleges measured, against a free-tier limit of 8,000 tokens a minute. Two
-  questions in one minute can still draw a refusal. The counsellor then says
-  the provider refused the request and suggests a narrower question, instead
-  of reporting the model as down. Questions that also ask for alternatives
-  are capped at 120 history rows.
+  colleges measured, against a free-tier limit of 8,000 tokens a minute. With
+  a rank given, or with a request for alternatives, it sends at most 90 of
+  those rows, OPEN rows first. The largest prompt measured is then 5,391
+  tokens for one college and 6,644 with alternatives. Two questions in one
+  minute can still draw a refusal. The counsellor then says the provider
+  refused the request and suggests a narrower question, instead of reporting
+  the model as down.
 - **The backend runs on a free instance: 512MB RAM, a fraction of a CPU.**
   Requests are slower than the screenshots suggest.
 - **The first counsellor question that doesn't name a specific college is

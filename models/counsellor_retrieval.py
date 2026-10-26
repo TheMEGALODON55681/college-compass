@@ -6,7 +6,8 @@ Two retrieval paths, tried in order:
   eligibility filter (api/eligibility.py), the trained cutoff regressor's
   forecast, and the calibrated admission-probability artifacts - exactly the
   same numbers /recommend already serves. No separate model, no
-  reimplementation.
+  reimplementation. The named college also carries its real closing ranks,
+  since a student out of reach of a branch has no forecast row for it.
 - Semantic retrieval, for fuzzy questions that don't name a college ("good CS
   options near my rank", "colleges like X"): embeds the free-text question at
   request time and searches the existing similarity FAISS index
@@ -37,15 +38,21 @@ SIMILAR_KEYWORDS = ["similar", " like ", "alternative", "instead of", "options n
 TOP_N_STRUCTURED_BRANCHES = 5
 TOP_K_SEMANTIC = 5
 
-# Cap on the named college's cutoff-history rows when the question also asks
-# for alternatives ("colleges similar to IIT Delhi"), which puts that history
-# in one prompt next to five neighbours. Uncapped, IIT Delhi's 201 rows (before
-# the history was limited to Gender-Neutral seats) made a prompt of about 8,477
-# tokens and a free-tier provider refused it (8,000 per minute). At 3.4
-# characters per token the largest prompt over all colleges (IIT Patna) is
-# about 6,620 tokens at 130 rows and 7,014 at 140, so 120 (6,189) keeps every
-# college under 7,000 with room for the estimate being off.
-MIXED_HISTORY_ROW_CAP = 120
+# Cap on the named college's cutoff-history rows when that history shares the
+# prompt with other records: the question also asks for alternatives ("colleges
+# similar to IIT Delhi", five neighbours), or comes with a student profile
+# (forecast rows for the named college and for each neighbour). Uncapped, IIT
+# Delhi's 201 rows (before the history was limited to Gender-Neutral seats) made
+# a prompt of about 8,477 tokens and a free-tier provider refused it (8,000 per
+# minute). At 3.4 characters per token the largest no-profile mixed prompt over
+# all colleges (IIT Patna) is about 6,620 tokens at 130 rows and 7,014 at 140.
+# With a profile, over every college, 16 profiles and two phrasings (full name,
+# shortest alias), the worst prompt for "closing ranks for X" is 7,880 tokens
+# uncapped (32 of 3,536 over 7,000) and 5,391 at 90 rows; for "colleges similar
+# to X" it is 8,707 uncapped, 7,516 at 120 rows (7 of 4,256 over 7,000) and 6,644
+# at 90, so 90 keeps every prompt under 7,000 with room for the estimate being
+# off.
+SHARED_HISTORY_ROW_CAP = 90
 
 # Matched against the canonical name, not the database's institute_type: four
 # IIIT-named colleges (Bhubaneswar, Naya Raipur, Raichur, Senapati Manipur)
@@ -293,14 +300,34 @@ def _forecast_records(college_id, student, forecasts, reference_tables, probabil
     return records
 
 
-def _structured_records_for_college(college_id, student, model_state, branch_filter=None, cs_adjacent_only=False, history_row_cap=None):
+def _structured_records_for_college(
+    college_id,
+    student,
+    model_state,
+    branch_filter=None,
+    cs_adjacent_only=False,
+    history_row_cap=None,
+    named=False,
+    alongside_alternatives=False,
+):
     """Real numbers for one college: predicted closing rank / band / P(admit)
-    per eligible branch if a student profile is given, else the latest
-    actual historical closing rank per branch (at most history_row_cap rows
-    when given). Always adds NIRF rank and fees if on record.
+    per eligible branch if a student profile is given, plus the latest actual
+    historical closing rank per branch (at most history_row_cap rows when
+    given) when there is no profile or the question names this college. Always
+    adds NIRF rank and fees if on record.
+
+    Eligibility lists only the branches a student can reach, so a student out of
+    reach of the branch they asked about gets no forecast row for it, and a
+    branch the question does not name precisely ("CSE") cannot be told from the
+    reachable ones. A named college therefore carries its history beside the
+    forecast rows. Next to five alternatives (`alongside_alternatives`) the
+    prompt has no room for both, so a student who can reach the college gets
+    the forecast only. A college listed as an alternative is not named: it
+    stays limited to what the student can reach.
     """
+    forecast = []
     if student is not None:
-        records = _forecast_records(
+        forecast = _forecast_records(
             college_id,
             student,
             model_state["merged_forecasts"],
@@ -309,8 +336,9 @@ def _structured_records_for_college(college_id, student, model_state, branch_fil
             branch_filter,
             cs_adjacent_only,
         )
-    else:
-        records = _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, max_rows=history_row_cap)
+    records = forecast
+    if student is None or (named and not (alongside_alternatives and forecast)):
+        records = _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, max_rows=history_row_cap) + forecast
 
     colleges, _programs, reference_metadata = model_state["reference_tables"]
     college_row = colleges[colleges["college_id"] == college_id]
@@ -417,7 +445,9 @@ def build_context_bundle(question, student_profile_dict, model_state):
                 model_state,
                 branch_filter=matched_branch,
                 cs_adjacent_only=cs_adjacent_only,
-                history_row_cap=MIXED_HISTORY_ROW_CAP if wants_semantic else None,
+                history_row_cap=SHARED_HISTORY_ROW_CAP if wants_semantic or student is not None else None,
+                named=True,
+                alongside_alternatives=wants_semantic,
             )
         )
         college_ids.append(matched_college)

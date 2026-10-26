@@ -2,9 +2,22 @@
 to script the provider: each create() call takes the next canned item and
 either returns it as a response or, if it is an exception, raises it. Every
 call's messages are kept in .calls so a test can inspect the real prompt.
+
+FixedEncoder stands in for the sentence encoder: every text gets the same
+vector, so a semantic question runs without loading the real model.
 """
 
 from types import SimpleNamespace
+
+import numpy as np
+
+
+class FixedEncoder:
+    def __init__(self, dim):
+        self.dim = dim
+
+    def encode(self, texts, normalize_embeddings=True):
+        return np.full((len(texts), self.dim), 1 / np.sqrt(self.dim), dtype="float32")
 
 
 class FakeClient:

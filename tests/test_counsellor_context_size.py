@@ -12,12 +12,11 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-import numpy as np
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from counsellor_fakes import FakeClient
+from counsellor_fakes import FakeClient, FixedEncoder
 from api.eligibility import load_reference_tables
 from models.counsellor import generate_answer
 from models.counsellor_retrieval import _historical_closing_ranks, build_context_bundle, build_lookup_cache
@@ -32,14 +31,6 @@ CHARS_PER_TOKEN = 3.4
 IIT_DELHI = "indian-institute-of-technology-delhi"
 
 
-class _FixedEncoder:
-    def __init__(self, dim):
-        self.dim = dim
-
-    def encode(self, texts, normalize_embeddings=True):
-        return np.full((len(texts), self.dim), 1 / np.sqrt(self.dim), dtype="float32")
-
-
 @pytest.fixture(scope="module")
 def state():
     similarity_bundle = load_similarity_index()
@@ -49,7 +40,7 @@ def state():
         "counsellor_lookup": build_lookup_cache(),
         "reference_tables": load_reference_tables(),
         "similarity_bundle": similarity_bundle,
-        "embedding_model": _FixedEncoder(similarity_bundle[0].d),
+        "embedding_model": FixedEncoder(similarity_bundle[0].d),
     }
 
 

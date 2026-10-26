@@ -190,7 +190,7 @@ for either: "IIT Delhi and IIT Bombay have closing ranks of 116 and 68" passes
 with the figures swapped. Telling the two apart reliably means parsing English
 clause structure, and a stricter rule would block faithful answers written as
 "A and B have X and Y". Splitting at semicolons catches the swap when the
-model writes two clauses. Six more limits:
+model writes two clauses. Eight more limits:
 
 - A branch is read only by its full name as the records spell it. "CSE" and
   "Computer Science" name no branch, so a Computer Science rank given for
@@ -212,6 +212,12 @@ model writes two clauses. Six more limits:
   so at that college a figure written beside "Information
   Technology-Business Informatics" can pass with the plain Information
   Technology rank.
+- A cue word is read on the left of a figure first, and a cue on the right
+  counts only when none sits on the left. "NIRF ranks IIT Delhi high, 204 is
+  the closing rank for OPEN" reads 204 as a NIRF rank and flags it, though the
+  nearer cue says closing rank. The error runs toward a false reject.
+- The N in "round N" passes when any record of the named college has that
+  round, whatever its branch, category or year.
 
 ## A college name that contains digits fails the grounding check
 
@@ -261,7 +267,7 @@ the counsellor refused this request: it was too long, or the service hit its
 usage limit. Wait a minute and ask again, or ask about one college and one
 branch."), distinct from the unreachable message and free of numbers. A
 connection failure still reads as unreachable. And a mixed question now
-attaches at most `MIXED_HISTORY_ROW_CAP` (120) history rows for the named
+attaches at most `MIXED_HISTORY_ROW_CAP` (120; 90 and renamed `SHARED_HISTORY_ROW_CAP` from Phase 3b) history rows for the named
 college, OPEN rows first so every branch keeps its OPEN row, in a fixed order.
 At 3.4 characters per token (the ratio the 8,477-token report implies for the
 29,058-character prompt) the largest prompt over every college in the database
@@ -324,9 +330,56 @@ when the year has one. Each record carries its pool and round. The other cutoff
 readers were checked and hold the rule: the forecast reads Gender-Neutral rows
 in SQL, and `/cutoffs`, the trend cache and the bulk history exclude Female-only
 rows. They keep the 2016 and 2017 "Not gender-split" rows on purpose, since
-JoSAA did not split seats before 2018. The 120-row cap stays: the largest mixed
+JoSAA did not split seats before 2018. The 120-row cap stayed in Phase 3 (Phase 3b lowered it to 90): the largest mixed
 prompt over every college is now 6,189 tokens (IIT Patna), where 130 rows would
 give 6,620 and 140 rows 7,014. Tests: `tests/test_counsellor_seat_pool.py`.
+
+## A counsellor question with a rank gets no closing ranks for branches the rank cannot reach (closed)
+
+Found 2026-10-26 on the live site. A student with a rank card asked for the
+closing rank of Computer Science at IIT Delhi, and the counsellor answered that
+the records did not include it. The database holds fifteen 2024 rows for that
+branch. With a student profile, the counsellor built a college's records from
+the eligibility filter alone, and that filter lists only the branches the
+student can reach. A rank of 12,480 reaches none of IIT Delhi's Computer Science
+rows, so the model received a NIRF rank and a fee and nothing else, and said so.
+The same gap opened for a branch written as "CSE", which the counsellor does not
+read as a branch: a student who could reach other IIT Delhi branches got those
+forecasts and no Computer Science row. The behavior predates Phase 3: the code at
+`93dbe3d` builds the same two records and gives the same refusal, and the IIT
+Bombay baseline fixtures pin the same empty bundle.
+
+Closed 2026-10-26 (Phase 3b). A college the question names now always carries its
+latest Gender-Neutral closing ranks, the rows a question without a profile gets,
+and a profile adds its forecast rows beside them. Two limits keep the prompt
+under the provider's token limit. The history is capped at 90 rows whenever it
+shares the prompt with a profile's forecast rows or with alternatives (the cap
+was 120 for alternatives), OPEN rows first; no college has more than 32 OPEN
+rows, so every branch keeps its OPEN row. And a question that also asks for
+alternatives ("colleges similar to IIT Delhi") attaches the history only for a
+student who cannot reach the college, because the five neighbours' forecast rows
+leave no room for both. A student who can reach it gets the forecast, as before.
+Over 133 colleges, 16 profiles and two phrasings, the worst prompt is 5,391
+tokens for a one-college question and 6,644 for one with alternatives; uncapped
+they were 7,880 and 8,707. A college listed as an alternative still shows only
+what the student can reach. Two golden fixtures that pinned the empty bundle,
+`chat_structured_named_college` and `chat_grounding_stress_extrapolation`, now
+list the IIT Bombay rows. Tests: `tests/test_counsellor_out_of_reach.py`.
+
+## Four colleges with only 2016 or 2017 data have an empty counsellor history
+
+Found 2026-10-26 while reviewing the Phase 3 seat-pool filter.
+`_historical_closing_ranks` keeps Gender-Neutral rows, and JoSAA did not split
+seats by gender before 2018, so rows from 2016 and 2017 carry the pool "Not
+gender-split". Four of the 133 colleges have no row from 2018 on: Indian School
+of Mines Dhanbad, Indian Institute of Crop Processing Technology Thanjavur, and
+two spellings of IIIT Sri City. A counsellor question about one of them gets a
+NIRF rank and a fee and no closing ranks. Before Phase 3 the same question got
+their 2016 or 2017 rows. None of the four reaches the forecast, so no
+recommendation lists them.
+
+Left open on purpose: serving those rows takes a second seat-pool rule, with
+each record keeping its real pool, and that is a policy call.
 
 ## Numbers written with a space between digit groups split into fragments
 
