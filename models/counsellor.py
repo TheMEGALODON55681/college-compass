@@ -88,56 +88,229 @@ def extract_numbers(text_):
     return found
 
 
+def _value_forms(value):
+    """Every way a record's value may be written in an answer, normalized the
+    same way as extract_numbers: a probability or similarity score between 0
+    and 1 also reads as a whole percent ("0.85" as "85" and "85%").
+    """
+    forms = set()
+    if isinstance(value, bool):
+        pass
+    elif isinstance(value, int):
+        forms.add(str(value))
+    elif isinstance(value, float):
+        forms.add(str(value))
+        forms.add(f"{value:.4f}".rstrip("0").rstrip("."))
+        if 0 <= value <= 1:
+            pct = round(value * 100)
+            forms.add(str(pct))
+            forms.add(f"{pct}%")
+    return forms
+
+
+def _input_value_strings(bundle):
+    """The student's own stated inputs (their rank or budget, echoed back, is
+    not a fabricated system number).
+    """
+    inputs = set()
+    for value in bundle.get("student_inputs", {}).values():
+        inputs.add(str(value))
+        if isinstance(value, float):
+            inputs.add(f"{value:.4f}".rstrip("0").rstrip("."))
+    return inputs
+
+
 def _grounded_value_strings(bundle):
-    """Every numeric value the bundle actually contains, normalized the same
-    way as extract_numbers, plus each record's own year (a legitimate,
-    sourced number - "the 2025 forecast" - not a fabricated figure) and the
-    student's own stated inputs (their own rank/budget, echoed back, is not
-    a fabricated system number either).
+    """Every numeric value the bundle actually contains, plus each record's
+    own year (a legitimate, sourced number - "the 2025 forecast" - not a
+    fabricated figure) and the student's own stated inputs. A flat set: it
+    says a number exists somewhere in the bundle, not whose it is, so it is the
+    first gate of _ungrounded_spans and not the whole check.
     """
     grounded = set()
     for r in bundle["records"]:
-        value = r["value"]
-        if isinstance(value, bool):
-            pass
-        elif isinstance(value, int):
-            grounded.add(str(value))
-        elif isinstance(value, float):
-            grounded.add(str(value))
-            trimmed = f"{value:.4f}".rstrip("0").rstrip(".")
-            grounded.add(trimmed)
-            if 0 <= value <= 1:
-                pct = round(value * 100)
-                grounded.add(str(pct))
-                grounded.add(f"{pct}%")
+        grounded |= _value_forms(r["value"])
         if r.get("year"):
             grounded.add(str(r["year"]))
+    return grounded | _input_value_strings(bundle)
 
-    for value in bundle.get("student_inputs", {}).values():
-        grounded.add(str(value))
-        if isinstance(value, float):
-            grounded.add(f"{value:.4f}".rstrip("0").rstrip("."))
 
-    return grounded
+# Attribution. A number is judged against the records of the college, kind,
+# year, category, seat pool and round the answer attaches it to. The answer is
+# cut into segments (a line or a sentence), and what a segment says about those
+# applies to the numbers inside it. Attribution that a segment does not state is
+# not checked: with no college named, the number may come from any college the
+# bundle covers; with no cue word beside it, it may be any kind of value. That
+# is the fallback, and it is the old flat check restricted to the bundle's
+# records. A segment is judged as a set, so two categories in one sentence
+# ("OPEN 116, OBC-NCL 224") can swap their numbers unnoticed.
+SEGMENT_BREAK = re.compile(r"\n+|;\s*|(?<=[.!?])\s+(?=[A-Z\[(*])")
+YEAR_PATTERN = re.compile(r"(?<!\d)(?:19|20)\d{2}(?!\d)")
+ROUND_PATTERN = re.compile(r"\bround\s*#?(\d+)", re.IGNORECASE)
+# The API's category vocabulary (OPEN, never "General"), with its PwD compound.
+CATEGORY_PATTERN = re.compile(r"(?<![A-Za-z0-9])(?:OPEN|EWS|OBC-NCL|SC|ST)(?: \(PwD\))?(?![A-Za-z0-9])")
+POOL_PATTERN = re.compile(r"\b(female|women)\b|gender[- ]neutral", re.IGNORECASE)
+
+RANK_FIELDS = {"predicted_closing_rank", "actual_closing_rank", "closing_rank"}
+# A cue word beside a number says which record fields it can be. A quota is not
+# read from the text: "AI" is also a branch name.
+KIND_CUES = (
+    (re.compile(r"nirf", re.IGNORECASE), {"nirf_rank"}),
+    (re.compile(r"\bfees?\b|lakh|tuition", re.IGNORECASE), {"fees_annual_lakhs"}),
+    (re.compile(r"probab|chance|likelihood", re.IGNORECASE), {"admission_probability"}),
+    (re.compile(r"closing|cut-?off", re.IGNORECASE), RANK_FIELDS),
+    (re.compile(r"similarity|score", re.IGNORECASE), {"semantic_match"}),
+)
+CUE_WINDOW = 60
+
+
+def _segments(text_):
+    spans, begin = [], 0
+    for match in SEGMENT_BREAK.finditer(text_):
+        spans.append((begin, match.start()))
+        begin = match.end()
+    spans.append((begin, len(text_)))
+    return spans
+
+
+def _college_names(bundle):
+    """Lowercase names each bundle college may be called in an answer: its id
+    (the system prompt asks the model to cite it), the id read as words, and the
+    aliases build_context_bundle attached ("iit delhi").
+    """
+    given = bundle.get("college_aliases", {})
+    ids = {r["college_id"] for r in bundle["records"]}
+    return {cid: {cid.lower(), cid.lower().replace("-", " "), *given.get(cid, [])} for cid in ids}
+
+
+def _branches_named(lowered, branches):
+    """The branches a segment names by their full name, as whole words. A name
+    that only occurs inside a longer branch's name ("Chemical Engineering" in
+    "Biotechnology and Biochemical Engineering", "Computer Science and
+    Engineering" in "... (Artificial Intelligence)") is not a mention of the
+    short branch.
+    """
+    found = [
+        (m.start(), m.end(), b)
+        for b in branches
+        if b.lower() in lowered
+        for m in re.finditer(rf"(?<![a-z0-9]){re.escape(b.lower())}(?![a-z0-9])", lowered)
+    ]
+    return {b for s, e, b in found if not any(s2 <= s and e <= e2 and e2 - s2 > e - s for s2, e2, _ in found)}
+
+
+def _segment_context(segment, names, record_years, branches):
+    lowered = segment.lower()
+    mentioned = {
+        cid
+        for cid, aliases in names.items()
+        if any(re.search(rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])", lowered) for alias in aliases)
+    }
+    return {
+        "colleges": mentioned or set(names),
+        "years": {y for y in YEAR_PATTERN.findall(segment) if y in record_years},
+        # Only a branch's full name as the records write it; "CSE" is not read.
+        "branches": _branches_named(lowered, branches),
+        "categories": set(CATEGORY_PATTERN.findall(segment)),
+        "pools": {"female" if m.group(1) else "gender" for m in POOL_PATTERN.finditer(segment)},
+        "rounds": {m.group(1) for m in ROUND_PATTERN.finditer(segment)},
+    }
+
+
+def _kinds_for(answer_text, lo, start, end, hi):
+    """The record fields the number at answer_text[start:end] can be, from the
+    nearest cue word before it (back to lo) or, failing that, after it (up to
+    hi, which the caller sets to `end` when another figure follows, since a cue
+    ahead of that figure belongs to it). None when nothing beside the number says.
+    """
+    # A table cell is its own stretch: a cue in the neighbouring cell ("no NIRF
+    # rank" beside a fee) belongs to that cell's figure.
+    left = answer_text[max(lo, start - CUE_WINDOW) : start].rsplit("|", 1)[-1]
+    right = answer_text[end : min(hi, end + CUE_WINDOW)].split("|", 1)[0]
+    for window, nearness in ((left, lambda m: m.end()), (right, lambda m: -m.start())):
+        cues = [(nearness(m), fields) for pattern, fields in KIND_CUES for m in pattern.finditer(window)]
+        if cues:
+            return max(cues, key=lambda cue: cue[0])[1]
+    return None
+
+
+def _agrees(record, context):
+    """False when the segment states a year, branch, category, seat pool or round that
+    this record contradicts. A record without the attribute is not contradicted
+    (a NIRF rank has no year, an old-shape record no category); a record whose
+    round is None, a year with no round breakdown, does contradict a stated round.
+    """
+    year, branch, category, pool = record.get("year"), record.get("branch"), record.get("category"), record.get("pool")
+    if context["years"] and year and str(year) not in context["years"]:
+        return False
+    if context["branches"] and branch and branch not in context["branches"]:
+        return False
+    if context["categories"] and category and category not in context["categories"]:
+        return False
+    if context["pools"] and pool and pool.lower().split("-")[0] not in context["pools"]:
+        return False
+    if context["rounds"] and "round" in record and str(record["round"]) not in context["rounds"]:
+        return False
+    return True
 
 
 def _ungrounded_spans(answer_text, bundle):
-    """(start, end, value) for each number in answer_text that does not appear
-    anywhere in the bundle's grounded values - exact match only, deliberately
-    no fuzzy/"close enough" tolerance, since the whole point is that a
-    fabricated figure must never slip through.
+    """(start, end, value) for each number in answer_text that the bundle does
+    not support: not a value anywhere in the bundle (exact match only,
+    deliberately no fuzzy/"close enough" tolerance, since a fabricated figure
+    must never slip through), or a value of a record that is not the one the
+    answer attaches it to. A round number ("round 3") must be a round of a
+    record for the college it sits beside.
     """
+    records = bundle["records"]
     grounded = _grounded_value_strings(bundle)
-    return [
-        (start, end, n)
-        for n, start, end in extract_numbers(answer_text)
-        if n not in grounded and n.rstrip("%") not in grounded
-    ]
+    inputs = _input_value_strings(bundle)
+    record_years = {str(r["year"]) for r in records if r.get("year")}
+    names = _college_names(bundle)
+    forms = [(r, _value_forms(r["value"])) for r in records]
+    segments = _segments(answer_text)
+    designators = {m.start(1) for m in ROUND_PATTERN.finditer(answer_text)}
+    numbers = extract_numbers(answer_text)
+    # A year or a round names the figure beside it; only another figure ends
+    # the stretch in which a cue word is read.
+    figures = [(s, e) for n, s, e in numbers if s not in designators and n not in record_years]
+
+    branches = {r["branch"] for r in records if r.get("branch")}
+    contexts = [_segment_context(answer_text[lo:hi], names, record_years, branches) for lo, hi in segments]
+    flagged = []
+    for n, start, end in numbers:
+        index = next(i for i, (lo, hi) in enumerate(segments) if lo <= start < hi)
+        lo, hi = segments[index]
+        context = contexts[index]
+        candidates = [(r, f) for r, f in forms if r["college_id"] in context["colleges"]]
+
+        if start in designators:
+            supported = any(str(r.get("round")) == n for r, _ in candidates)
+        elif n in inputs or n in record_years:
+            supported = True
+        elif n not in grounded and n.rstrip("%") not in grounded:
+            supported = False
+        else:
+            kinds = _kinds_for(
+                answer_text,
+                max([e for s, e in figures if e <= start] + [lo]),
+                start,
+                end,
+                end if any(end <= s < hi for s, e in figures) else hi,
+            )
+            supported = any(
+                (kinds is None or r["field"] in kinds) and (n in f or n.rstrip("%") in f) and _agrees(r, context)
+                for r, f in candidates
+            )
+        if not supported:
+            flagged.append((start, end, n))
+    return flagged
 
 
 def validate_grounding(answer_text, bundle):
-    """Returns the list of numbers in answer_text that do not appear anywhere
-    in the bundle's grounded values, in order of appearance.
+    """Returns the list of numbers in answer_text that the bundle does not
+    support - absent from it, or attached to a college, year, category, round,
+    seat pool or kind of figure they do not belong to - in order of appearance.
     """
     return [n for _, _, n in _ungrounded_spans(answer_text, bundle)]
 
@@ -196,8 +369,9 @@ def generate_answer(question, bundle):
             {
                 "role": "user",
                 "content": (
-                    f"Your answer contained a number not present in the context records: {', '.join(ungrounded)}. "
-                    "Rewrite your answer using ONLY numbers that appear in the context records above. "
+                    "Your answer contained a number that is not in the context records, or that the records give for "
+                    f"a different college, year, category, round or kind of figure: {', '.join(ungrounded)}. "
+                    "Rewrite your answer using ONLY numbers that appear in the context records above, each with the college, year and category it belongs to. "
                     "If you cannot answer without that number, say plainly that the figure is not available."
                 ),
             },

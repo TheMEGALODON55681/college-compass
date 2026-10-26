@@ -13,9 +13,11 @@ Two retrieval paths, tried in order:
   (models/similarity.py) for the nearest college profiles. No second index.
 
 Every record in the returned bundle carries its own source (college_id, year,
-field) so the generation step can cite it and models/counsellor.py's
-grounding validator can verify every number the model states actually came
-from here. No prose is invented in this module - only structured facts.
+field, and for a rank or probability also program, category, quota, seat pool
+and round) so the generation step can cite it and models/counsellor.py's
+grounding validator can verify that every number the model states came from
+here, for the college and kind of figure it was attributed to. No prose is
+invented in this module - only structured facts.
 """
 
 import re
@@ -27,6 +29,7 @@ from api.eligibility import StudentProfile, get_eligible_colleges
 from db.connection import get_database_url, get_engine
 from models.admission_probability import predict_admission_probability
 from models.ranker import CS_ADJACENT_KEYWORDS, is_cs_adjacent
+from models.regressor_dataset import TRAINING_GENDER as GENDER_NEUTRAL
 
 PLACEMENT_KEYWORDS = ["placement", "package", "salary", "ctc", "job offer", "stipend", "internship pay"]
 SIMILAR_KEYWORDS = ["similar", " like ", "alternative", "instead of", "options near", "comparable", "other colleges"]
@@ -36,11 +39,12 @@ TOP_K_SEMANTIC = 5
 
 # Cap on the named college's cutoff-history rows when the question also asks
 # for alternatives ("colleges similar to IIT Delhi"), which puts that history
-# in one prompt next to five neighbours. Uncapped, IIT Delhi's 201 rows made a
-# prompt of about 8,477 tokens and a free-tier provider refused it (8,000 per
-# minute). At 3.4 characters per token the largest prompt over all colleges
-# (IIT Patna) is about 6,790 tokens at 130 rows and over 7,000 at 140, so 120
-# keeps every college under 7,000 with room for the estimate being off.
+# in one prompt next to five neighbours. Uncapped, IIT Delhi's 201 rows (before
+# the history was limited to Gender-Neutral seats) made a prompt of about 8,477
+# tokens and a free-tier provider refused it (8,000 per minute). At 3.4
+# characters per token the largest prompt over all colleges (IIT Patna) is
+# about 6,620 tokens at 130 rows and 7,014 at 140, so 120 (6,189) keeps every
+# college under 7,000 with room for the estimate being off.
 MIXED_HISTORY_ROW_CAP = 120
 
 # Matched against the canonical name, not the database's institute_type: four
@@ -162,8 +166,15 @@ def _wants_semantic(question):
     return any(kw in q for kw in SIMILAR_KEYWORDS)
 
 
-def _record(college_id, year, field, value, label):
-    return {"college_id": college_id, "year": year, "field": field, "value": value, "label": label}
+def _record(college_id, year, field, value, label, **attribution):
+    """One number the answer may state, with the row it came from. `field` is
+    its kind (actual_closing_rank, predicted_closing_rank, admission_probability,
+    nirf_rank, ...). A rank or probability record also carries program_id,
+    category, quota, pool and round, which models/counsellor.py checks a stated
+    number against; a college-level figure (NIRF rank, fees, similarity score)
+    carries none of them.
+    """
+    return {"college_id": college_id, "year": year, "field": field, "value": value, "label": label, **attribution}
 
 
 def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, database_url=None, max_rows=None):
@@ -181,19 +192,34 @@ def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, datab
     """
     database_url = database_url or get_database_url()
     engine = get_engine(database_url)
+    # Gender-Neutral seats only, the pool the whole product serves: the year is
+    # the latest one that has such rows, and a year reported per round keeps its
+    # final round, the same settled row /cutoffs shows (get_cutoff_history).
     query = text(
         """
-        SELECT cu.year, p.branch_name, cu.category, cu.quota, cu.closing_rank
-        FROM cutoffs cu
-        JOIN programs p ON cu.program_id = p.program_id
-        WHERE cu.college_id = :college_id
-          AND cu.quota = :quota
-          AND cu.year = (SELECT MAX(year) FROM cutoffs WHERE college_id = :college_id AND quota = :quota)
+        WITH ranked AS (
+            SELECT cu.year, cu.program_id, p.branch_name, cu.category, cu.quota, cu.round, cu.closing_rank,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY cu.program_id, cu.category
+                       ORDER BY (cu.round IS NULL) ASC, cu.round DESC
+                   ) AS rn
+            FROM cutoffs cu
+            JOIN programs p ON cu.program_id = p.program_id
+            WHERE cu.college_id = :college_id
+              AND cu.quota = :quota
+              AND cu.gender_seat_type = :pool
+              AND cu.year = (
+                  SELECT MAX(year) FROM cutoffs
+                  WHERE college_id = :college_id AND quota = :quota AND gender_seat_type = :pool
+              )
+        )
+        SELECT year, program_id, branch_name, category, quota, round, closing_rank FROM ranked WHERE rn = 1
         """
     )
-    history = pd.read_sql(query, engine, params={"college_id": college_id, "quota": "AI"})
+    params = {"college_id": college_id, "pool": GENDER_NEUTRAL}
+    history = pd.read_sql(query, engine, params={**params, "quota": "AI"})
     if history.empty:
-        history = pd.read_sql(query, engine, params={"college_id": college_id, "quota": "OS"})
+        history = pd.read_sql(query, engine, params={**params, "quota": "OS"})
 
     if branch_filter:
         history = history[history["branch_name"].str.contains(re.escape(branch_filter), case=False, na=False)]
@@ -211,13 +237,21 @@ def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, datab
 
     records = []
     for row in history.itertuples(index=False):
+        round_ = int(row.round) if pd.notna(row.round) else None
+        round_part = f", round {round_}" if round_ is not None else ""
         records.append(
             _record(
                 college_id,
                 int(row.year),
                 "actual_closing_rank",
                 int(row.closing_rank),
-                f"{row.branch_name} actual JoSAA closing rank {row.year}, quota {row.quota}, category {row.category}",
+                f"{row.branch_name} actual JoSAA closing rank {row.year}, quota {row.quota}, category {row.category}{round_part}",
+                program_id=row.program_id,
+                branch=row.branch_name,
+                category=row.category,
+                quota=row.quota,
+                pool=GENDER_NEUTRAL,
+                round=round_,
             )
         )
     return records
@@ -240,6 +274,8 @@ def _forecast_records(college_id, student, forecasts, reference_tables, probabil
     for r in rows[:TOP_N_STRUCTURED_BRANCHES]:
         has_lag = r["prediction_source"] == "delta_model"
         probability = predict_admission_probability(r["predicted_closing_rank"], student.jee_rank, has_lag, probability_artifacts)
+        # The forecast is Gender-Neutral and not tied to a counselling round.
+        row = {"program_id": r["program_id"], "branch": r["branch_name"], "category": student.category, "quota": r["quota_used"], "pool": GENDER_NEUTRAL, "round": None}
         records.append(
             _record(
                 college_id,
@@ -247,11 +283,12 @@ def _forecast_records(college_id, student, forecasts, reference_tables, probabil
                 "predicted_closing_rank",
                 r["predicted_closing_rank"],
                 f"{r['branch_name']} predicted closing rank (2025 forecast, quota {r['quota_used']}, category {student.category})",
+                **row,
             )
         )
-        records.append(_record(college_id, 2025, "band", r["band"], f"{r['branch_name']} eligibility band: {r['band']}"))
+        records.append(_record(college_id, 2025, "band", r["band"], f"{r['branch_name']} eligibility band: {r['band']}", **row))
         records.append(
-            _record(college_id, 2025, "admission_probability", probability, f"{r['branch_name']} calibrated admission probability")
+            _record(college_id, 2025, "admission_probability", probability, f"{r['branch_name']} calibrated admission probability", **row)
         )
     return records
 
@@ -342,7 +379,9 @@ def _semantic_records(question, model_state, exclude_college_ids, student, cs_ad
 
 
 def build_context_bundle(question, student_profile_dict, model_state):
-    """Returns {"mode", "records", "college_ids", "student_inputs"}.
+    """Returns {"mode", "records", "college_ids", "college_aliases",
+    "student_inputs"}. college_aliases maps each college in the bundle to the
+    names a question or an answer may use for it.
 
     mode is one of "structured" (a college was named), "semantic" (no
     college named, matched by free-text similarity), "mixed" (a college was
@@ -398,4 +437,17 @@ def build_context_bundle(question, student_profile_dict, model_state):
     if not records:
         return {"mode": "no_match", "records": [], "college_ids": [], "student_inputs": student_inputs}
 
-    return {"mode": mode, "records": records, "college_ids": college_ids, "student_inputs": student_inputs}
+    # The names each college may be called in an answer, so the grounding check
+    # can tell which college a sentence is about.
+    college_aliases = {cid: [] for cid in college_ids}
+    for alias, cid in lookup["alias_to_college_id"].items():
+        if cid in college_aliases:
+            college_aliases[cid].append(alias)
+
+    return {
+        "mode": mode,
+        "records": records,
+        "college_ids": college_ids,
+        "college_aliases": college_aliases,
+        "student_inputs": student_inputs,
+    }

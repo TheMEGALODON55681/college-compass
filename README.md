@@ -29,9 +29,10 @@ prompt:
   an "approximate" label, in the UI and in the PDF. Never a clean bar for a
   wobbly number.
 - The counsellor chatbot re-extracts every number it states and checks it
-  against real retrieved data with an exact match. A number that doesn't
-  match gets one stricter retry, then gets stripped from the answer rather
-  than shown.
+  against real retrieved data with an exact match, then against the college,
+  year, category and kind of figure its sentence attaches it to. A number
+  that doesn't match gets one stricter retry, then gets stripped from the
+  answer rather than shown.
 
 ## Screenshots
 
@@ -311,9 +312,14 @@ stale.
 (a named college, reusing the exact forecast and probability numbers
 `/recommend` already computed) or semantic retrieval (FAISS similarity, for
 fuzzier questions), building a context bundle where every fact carries its
-own source. The language model answers from that bundle, and a code-level
-validator checks every number in the answer against it before the answer
-is ever returned.
+own source. A closing rank or probability records its college, branch,
+category, quota, seat pool, year and round. The language model answers from
+that bundle, and a code-level validator checks every number in the answer
+against it before the answer is ever returned. The validator reads which
+college, branch, year, category, seat pool and round each sentence names, and
+whether a number sits beside "closing rank", "NIRF", "fees" or "probability".
+It accepts the number only if a record agrees on everything the sentence
+states.
 
 ## Scope and limitations
 
@@ -323,7 +329,8 @@ Stated plainly, because a hidden limitation is worse than a stated one.
   counsellor declines those questions before they reach the language
   model. This is a deliberate exclusion, not a gap.
 - **Gender-Neutral seats only.** Female-only supernumerary seats are a
-  real, separate, smaller pool this system doesn't cover.
+  real, separate, smaller pool this system doesn't cover. The forecast, the
+  cutoff chart and the counsellor's cutoff history all leave them out.
 - **Forecasts are genuine forecasts.** Any year without a real closing-rank
   label is evaluated on held-out past years, never on data that doesn't
   exist yet.
@@ -333,24 +340,22 @@ Stated plainly, because a hidden limitation is worse than a stated one.
 - **Category rank, not CRL, for reserved categories.** OPEN uses overall
   rank; EWS/OBC-NCL/SC/ST use category rank, matching how JoSAA actually
   publishes its own cutoffs.
-- **Grounding checks value membership, not attribution.** The validator
-  confirms a stated number appears somewhere in the real retrieved data,
-  but doesn't yet confirm it's the right *kind* of number for the right
-  college. In a multi-college answer, a genuinely real figure could in
-  principle get attached to the wrong college. Documented in
-  [KNOWN_ISSUES.md](KNOWN_ISSUES.md), not yet hardened.
-- **A counsellor question about one college, with no rank given, can still
-  hit a free-tier provider's rate limit.** It attaches every cutoff row for
-  that college, which can exceed the provider's per-minute token cap. The
-  counsellor then says the provider refused the request and suggests a
-  narrower question, instead of reporting the model as down. Questions that
-  also ask for alternatives stay under the cap.
-- **Closing ranks quoted without a rank can mix seat pools.** With no rank
-  and category, the counsellor falls back to a college's latest actual
-  closing ranks, and those include Female-only seats without saying which
-  pool a rank belongs to. With a rank and category the answer comes from the
-  Gender-Neutral forecast. Documented in [KNOWN_ISSUES.md](KNOWN_ISSUES.md),
-  not yet fixed.
+- **Grounding judges one sentence at a time.** The validator checks each
+  number against the records for the college, branch, year, category, seat
+  pool, round and kind of figure its sentence names, and skips whatever the
+  sentence leaves out. Two colleges or two categories in the same sentence
+  can swap their figures without a flag. It reads a branch only by its full
+  name as the records spell it ("Computer Science and Engineering", not
+  "CSE"), and it never reads a quota. Detail in
+  [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
+- **A counsellor question about one college, with no rank given, sends
+  every Gender-Neutral cutoff row of its latest year.** That is about 4,800
+  tokens for IIT Delhi and about 7,200 for IIT Patna, the largest of the 101
+  colleges measured, against a free-tier limit of 8,000 tokens a minute. Two
+  questions in one minute can still draw a refusal. The counsellor then says
+  the provider refused the request and suggests a narrower question, instead
+  of reporting the model as down. Questions that also ask for alternatives
+  are capped at 120 history rows.
 - **The backend runs on a free instance: 512MB RAM, a fraction of a CPU.**
   Requests are slower than the screenshots suggest.
 - **The first counsellor question that doesn't name a specific college is

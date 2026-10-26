@@ -154,35 +154,74 @@ On Linux the live `rss_mb` after boot read 318.0 to 328.3 MB with a peak of
 352.7 to 367.5 MB (2026-10-26), so whatever the effect is there, it leaves the
 512 MB limit well clear.
 
-## Grounding validation checks membership in one flat pool, not per-field or per-college attribution
+## Grounding validation checks membership in one flat pool, not per-field or per-college attribution (closed)
 
-`validate_grounding` (`models/counsellor.py`) extracts every numeric token
-the model states (`extract_numbers`) and checks whether that exact string
-appears anywhere in `_grounded_value_strings(bundle)` - one flat set built
-from every record's value across the whole context bundle (ranks,
-probabilities, fees, semantic-match scores), plus every record's year and
-the student's own stated inputs. It does not scope the check by field kind
-or by which college/branch the model attributed the number to.
+`validate_grounding` (`models/counsellor.py`) used to extract every number the
+model stated and accept it if that exact string appeared anywhere in one flat
+set: every record's value across the bundle, every record's year, and the
+student's own inputs. It did not look at which college or which kind of figure
+the answer gave the number to. A semantic question like "colleges like X"
+returns five colleges, so a real closing rank for college A passed when the
+model stated it as college B's, as a NIRF rank, or in the wrong year.
 
-Concretely: if a context bundle covers several colleges (the normal case for
-a semantic "colleges like X" question, which returns five), a number that is
-genuinely grounded for college A's predicted closing rank would also pass
-validation if the model mistakenly stated it as college B's closing rank, or
-as college A's NIRF rank, or as a year. The validator only proves "this
-number appears somewhere in real data", not "this number is the right kind
-of value, attached to the right college". A same-value collision across
-fields or colleges (e.g. two records that happen to share a digit-for-digit
-value) would not be caught either.
+Closed 2026-10-26 (Phase 3). The flat set stays as the first gate, so every
+number the old check rejected is still rejected. A number that passes it is
+then judged against the records its sentence points at. Each rank and
+probability record now carries `program_id`, `branch`, `category`, `quota`,
+`pool` and `round`, and the bundle carries each college's aliases. The
+validator cuts the answer into segments (a line, a sentence, or a clause after
+a semicolon). A segment's college, year, branch, category, seat pool and round
+apply to the numbers inside it, and a cue word beside a number ("closing
+rank", "NIRF", "fees", "probability") says which kind of figure it is. The
+number must be a value of a record that agrees on everything the segment
+states. A segment that names no college falls back to every college in the
+bundle, and a number with no cue word may be any kind of value. A "round 3"
+must be a round of a record for that college. The retry message now tells the
+model a number may be missing or attached to the wrong college, year,
+category, round or kind. Tests: `tests/test_counsellor_attribution.py`. A
+sweep of 12,762 faithful sentences built from every college's real records
+(three phrasings each) flagged none apart from the case in the last entry.
 
-Not fixed here - this is the optional grounding hardening named in the
-project plan. A fix would scope `_grounded_value_strings` (or the comparison
-in `validate_grounding`) per record kind (`predicted_closing_rank` vs
-`nirf_rank` vs `fees_annual_lakhs` vs `year`) and ideally per college_id, so
-a rank-context number can only validate against a rank value for the college
-the model is talking about. Deferred because it changes the shape of the
-core grounding check - a product invariant - so it needs a deliberate pass
-with its own test coverage, not a quiet change folded into a deploy-readiness
-phase.
+## Grounding is judged one sentence at a time
+
+Left open by Phase 3 on purpose. The validator treats a segment as a set, so a
+sentence that names two colleges, or two categories, accepts either figure
+for either: "IIT Delhi and IIT Bombay have closing ranks of 116 and 68" passes
+with the figures swapped. Telling the two apart reliably means parsing English
+clause structure, and a stricter rule would block faithful answers written as
+"A and B have X and Y". Splitting at semicolons catches the swap when the
+model writes two clauses. Six more limits:
+
+- A branch is read only by its full name as the records spell it. "CSE" and
+  "Computer Science" name no branch, so a Computer Science rank given for
+  Mechanical in the same college passes unless the sentence uses the full name.
+- A quota is never read, because "AI" is also a branch abbreviation. A category
+  is read only in capitals as the API spells it (OPEN, OBC-NCL).
+- A number equal to a year in the bundle counts as that year wherever it
+  appears, so a closing rank of exactly 2024 is not attributed. The old flat
+  check had the same property.
+- A rank stated with no branch, category, year or round still passes when the
+  college and value match. The rule that a figure must carry all six fields
+  before the student sees it belongs to the escalation work in Phase 4.
+- A branch name with an abbreviation in it, such as "Integrated B. Tech. - M.
+  Tech in Civil Engineering", is cut at its full stops. The segment that holds
+  the figure then names no branch, year or category, so the validator checks
+  none of them.
+- A college name that contains a branch name counts as naming that branch.
+  "Indian Institute of Information Technology" names Information Technology,
+  so at that college a figure written beside "Information
+  Technology-Business Informatics" can pass with the plain Information
+  Technology rank.
+
+## A college name that contains digits fails the grounding check
+
+Found 2026-10-26 by the Phase 3 sweep, and older than Phase 3. One canonical
+name carries a postal code: "North Eastern Regional Institute of Science and
+Technology, Nirjuli-791109 (Itanagar),Arunachal Pradesh". If the model writes
+the full name, 791109 is in no record, so the check flags it, the answer goes
+back for a retry it did not need, and a retry that keeps the name strips the
+digits out of it. A fix would skip numbers that sit inside a college name or
+alias. Not fixed: it is outside Phase 3 and touches one college.
 
 ## Strip-and-retry can mangle a legitimate number that shares digits with an ungrounded one (closed)
 
@@ -205,7 +244,7 @@ forced a pointless retry, and a model cannot slip a rank through one. A real
 figure inside a list item is still checked. Tests:
 `tests/test_counsellor_strip.py`.
 
-## Grounded counsellor's context can exceed a free-tier provider's per-minute token limit (closed for mixed questions)
+## Grounded counsellor's context can exceed a free-tier provider's per-minute token limit (closed)
 
 Found 2026-07-18 against a real hosted LLM (Groq, `openai/gpt-oss-120b`). A
 question that names a college and asks for alternatives ("colleges similar to
@@ -226,17 +265,19 @@ attaches at most `MIXED_HISTORY_ROW_CAP` (120) history rows for the named
 college, OPEN rows first so every branch keeps its OPEN row, in a fixed order.
 At 3.4 characters per token (the ratio the 8,477-token report implies for the
 29,058-character prompt) the largest prompt over every college in the database
-is about 6,280 tokens. A live check on the free tier answered "colleges similar
+was about 6,280 tokens (6,189 once Phase 3 limited the history to Gender-Neutral
+rows). A live check on the free tier answered "colleges similar
 to IIT Delhi" in 1.7 s. Tests: `tests/test_counsellor_provider.py`,
 `tests/test_counsellor_context_size.py`.
 
-Still open: a question about one college with no student profile and no request
-for alternatives ("closing ranks for IIT Delhi") attaches every row, about
-8,400 tokens for IIT Delhi, and the free tier refuses it. The student now gets
-the refusal message instead of the unreachable one, but no answer. It is
-uncapped on purpose: Phase 2 caps the mixed case, and Phase 3 will attribute
-the rows attached here. A paid tier, or a provider without the per-minute cap,
-avoids it.
+Phase 3 shrank the case that stayed open after Phase 2. A question about one
+college with no student profile and no request for alternatives ("closing ranks
+for IIT Delhi") attaches every row and stays uncapped on purpose. Limiting the
+history to Gender-Neutral seats cut IIT Delhi's prompt from about 8,400 to about
+4,800 tokens. Over the 101 colleges a canonical-name question matches, the median
+is about 1,600 tokens and the largest is IIT Patna at about 7,200 (149 rows), so
+none reaches 8,000 by the same 3.4 characters-per-token estimate. Two questions
+inside one minute can still draw a refusal from a free tier.
 
 If the provider refuses the stricter retry (sent after an ungrounded figure),
 the student still gets the first answer with that figure stripped, not the
@@ -260,26 +301,32 @@ alias map before and after differs by four new aliases, and every
 question built from an existing alias resolves to the same college as before. Tests:
 `tests/test_counsellor_matching.py`.
 
-## Historical closing ranks mix seat pools and carry no pool or round
+## Historical closing ranks mix seat pools and carry no pool or round (closed)
 
 Found 2026-10-26 while sizing the Phase 2 history cap.
-`_historical_closing_ranks` (`models/counsellor_retrieval.py`) selects a
+`_historical_closing_ranks` (`models/counsellor_retrieval.py`) selected a
 college's rows for its latest year and one quota with no filter on
-`gender_seat_type`, and its labels name the branch, year, quota and category but
-not the seat pool or the round. For IIT Delhi, 2024, quota AI, that is 201 rows:
-112 Gender-Neutral and 89 Female-only (including Supernumerary). A branch and
-category therefore appears once per pool, with different closing ranks and the
-same label, and the counsellor can state a Female-only rank as the OPEN rank.
-This happens when the question comes without a student profile. With a profile
-the answer comes from the forecast path, which is Gender-Neutral only.
+`gender_seat_type`, and its labels named the branch, year, quota and category
+but not the seat pool or the round. For IIT Delhi, 2024, quota AI, that was 201
+rows: 112 Gender-Neutral and 89 Female-only. A branch and category appeared
+once per pool, with different closing ranks and the same label, so with no
+student profile the counsellor could state a Female-only rank as the OPEN rank.
+It broke the Gender-Neutral-only rule and the rule that every stated figure
+carries college, branch, category, seat pool, year and round.
 
-It breaks the Gender-Neutral-only rule and the rule that every stated figure
-carries college, branch, category, seat pool, year and round. Not fixed in
-Phase 2: the cap there limits how many rows go in the prompt and does not pick
-them by pool. Phase 3 attributes every figure to its row, which is the natural
-place to filter to Gender-Neutral and to put the pool and round in the label.
-Filtering earlier is a one-line change to the query, and it would also shrink
-IIT Delhi's history from 201 rows to 112.
+Closed 2026-10-26 (Phase 3). The query keeps Gender-Neutral rows only and takes
+the latest year that has such rows, so IIT Delhi's history is 112 rows. The same
+query had a second flaw. Seven colleges whose latest data is a per-round year
+(2019 to 2022) attached a row for every round under one label, so round 1 and
+round 6 ranks for the same branch and category looked identical. The query now
+keeps the final round, the row `/cutoffs` shows, and the label names the round
+when the year has one. Each record carries its pool and round. The other cutoff
+readers were checked and hold the rule: the forecast reads Gender-Neutral rows
+in SQL, and `/cutoffs`, the trend cache and the bulk history exclude Female-only
+rows. They keep the 2016 and 2017 "Not gender-split" rows on purpose, since
+JoSAA did not split seats before 2018. The 120-row cap stays: the largest mixed
+prompt over every college is now 6,189 tokens (IIT Patna), where 130 rows would
+give 6,620 and 140 rows 7,014. Tests: `tests/test_counsellor_seat_pool.py`.
 
 ## Numbers written with a space between digit groups split into fragments
 
