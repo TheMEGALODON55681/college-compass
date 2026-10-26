@@ -17,7 +17,7 @@ set so the caller can log/surface the event.
 import os
 import re
 
-from openai import OpenAI
+from openai import APIStatusError, OpenAI
 
 DEFAULT_LLM_ENDPOINT = "http://localhost:11434/v1"
 DEFAULT_LLM_MODEL = "local-model"
@@ -33,6 +33,12 @@ LLM_UNREACHABLE_ANSWER = (
     "Check that LLM_ENDPOINT points at a running OpenAI-compatible server and try again."
 )
 
+PROVIDER_REJECTED_ANSWER = (
+    "I couldn't answer that. The language model service behind the counsellor refused this request: "
+    "it was too long, or the service hit its usage limit. "
+    "Wait a minute and ask again, or ask about one college and one branch."
+)
+
 SYSTEM_PROMPT = """You are a counsellor for JEE Main / JoSAA admissions into IITs, NITs, IIITs, and GFTIs.
 
 Rules:
@@ -43,7 +49,13 @@ Rules:
 - Do not answer general-knowledge questions outside JoSAA admissions.
 """
 
-NUMBER_PATTERN = re.compile(r"-?\d[\d,]*(?:\.\d+)?%?")
+NUMBER_PATTERN = re.compile(r"-?\d+(?:,\d+)*(?:\.\d+)?%?")
+
+# "1. Check your rank", "2) Compare", "**3.** Decide": a list ordinal is
+# formatting, not a figure the system could have stated, so it is never
+# checked against the bundle. Two digits at most and a line start keep a
+# real figure from hiding here.
+LIST_MARKER_PATTERN = re.compile(r"^[ \t]*\*{0,2}(\d{1,2})[.)]\*{0,2}(?=\s)", re.MULTILINE)
 
 
 def _client():
@@ -63,16 +75,16 @@ def _format_context(bundle):
 
 
 def extract_numbers(text_):
-    """Every rank-like or probability-like number in a piece of text,
-    normalized (commas stripped) so it can be compared against the bundle's
-    own grounded values.
+    """Every rank-like or probability-like number in a piece of text, as
+    (value, start, end): the value normalized (commas stripped) so it can be
+    compared against the bundle's own grounded values, and the span of the
+    number as written, so a caller can replace exactly that occurrence.
     """
+    list_markers = {m.start(1) for m in LIST_MARKER_PATTERN.finditer(text_)}
     found = []
-    for match in NUMBER_PATTERN.findall(text_):
-        cleaned = match.replace(",", "")
-        if cleaned in ("", "-", ".", "%"):
-            continue
-        found.append(cleaned)
+    for match in NUMBER_PATTERN.finditer(text_):
+        if match.start() not in list_markers:
+            found.append((match.group().replace(",", ""), match.start(), match.end()))
     return found
 
 
@@ -109,26 +121,35 @@ def _grounded_value_strings(bundle):
     return grounded
 
 
-def validate_grounding(answer_text, bundle):
-    """Returns the list of numbers in answer_text that do not appear anywhere
-    in the bundle's grounded values - exact match only, deliberately no
-    fuzzy/"close enough" tolerance, since the whole point is that a
+def _ungrounded_spans(answer_text, bundle):
+    """(start, end, value) for each number in answer_text that does not appear
+    anywhere in the bundle's grounded values - exact match only, deliberately
+    no fuzzy/"close enough" tolerance, since the whole point is that a
     fabricated figure must never slip through.
     """
     grounded = _grounded_value_strings(bundle)
-    ungrounded = []
-    for n in extract_numbers(answer_text):
-        bare = n.rstrip("%")
-        if n in grounded or bare in grounded:
-            continue
-        ungrounded.append(n)
-    return ungrounded
+    return [
+        (start, end, n)
+        for n, start, end in extract_numbers(answer_text)
+        if n not in grounded and n.rstrip("%") not in grounded
+    ]
 
 
-def _strip_ungrounded(answer_text, ungrounded_numbers):
+def validate_grounding(answer_text, bundle):
+    """Returns the list of numbers in answer_text that do not appear anywhere
+    in the bundle's grounded values, in order of appearance.
+    """
+    return [n for _, _, n in _ungrounded_spans(answer_text, bundle)]
+
+
+def _strip_ungrounded(answer_text, spans):
+    """Replaces exactly the flagged spans, last to first so earlier offsets
+    stay valid. A global search for the digits would also hit genuine figures
+    that contain them (a flagged 3 inside a grounded 39655).
+    """
     stripped = answer_text
-    for n in sorted(set(ungrounded_numbers), key=len, reverse=True):
-        stripped = re.sub(re.escape(n), "[figure not available in the system's data]", stripped)
+    for start, end, _ in sorted(spans, reverse=True):
+        stripped = stripped[:start] + "[figure not available in the system's data]" + stripped[end:]
     return stripped
 
 
@@ -136,7 +157,8 @@ def generate_answer(question, bundle):
     """Calls the configured LLM, then enforces numeric grounding in code
     before returning - see the module docstring. Never raises for a
     reachability problem; returns a clean error answer instead of ever
-    fabricating one. Returns a dict: answer, source_college_ids,
+    fabricating one (a 413 or 429 from the provider gets its own message,
+    PROVIDER_REJECTED_ANSWER). Returns a dict: answer, source_college_ids,
     blocked_ungrounded_figure, error.
     """
     if bundle["mode"] == "out_of_scope_placement":
@@ -154,14 +176,18 @@ def generate_answer(question, bundle):
         response = client.chat.completions.create(model=model, messages=messages, temperature=0.2)
         answer_text = response.choices[0].message.content
     except Exception as exc:
+        # 413 (request too large) and 429 (rate limited) mean the provider is
+        # up and refused this request; anything else is treated as unreachable.
+        rejected = isinstance(exc, APIStatusError) and exc.status_code in (413, 429)
         return {
-            "answer": LLM_UNREACHABLE_ANSWER,
+            "answer": PROVIDER_REJECTED_ANSWER if rejected else LLM_UNREACHABLE_ANSWER,
             "source_college_ids": bundle["college_ids"],
             "blocked_ungrounded_figure": False,
             "error": str(exc),
         }
 
-    ungrounded = validate_grounding(answer_text, bundle)
+    ungrounded_spans = _ungrounded_spans(answer_text, bundle)
+    ungrounded = [n for _, _, n in ungrounded_spans]
     blocked = False
     if ungrounded:
         print(f"[counsellor] ungrounded figure(s) caught in first answer: {ungrounded}")
@@ -179,15 +205,15 @@ def generate_answer(question, bundle):
         try:
             retry_response = client.chat.completions.create(model=model, messages=retry_messages, temperature=0.0)
             retry_text = retry_response.choices[0].message.content
-            retry_ungrounded = validate_grounding(retry_text, bundle)
-            if not retry_ungrounded:
+            retry_spans = _ungrounded_spans(retry_text, bundle)
+            if not retry_spans:
                 answer_text = retry_text
             else:
-                print(f"[counsellor] ungrounded figure(s) still present after retry: {retry_ungrounded}, stripping")
-                answer_text = _strip_ungrounded(retry_text, retry_ungrounded)
+                print(f"[counsellor] ungrounded figure(s) still present after retry: {[n for _, _, n in retry_spans]}, stripping")
+                answer_text = _strip_ungrounded(retry_text, retry_spans)
                 blocked = True
         except Exception:
-            answer_text = _strip_ungrounded(answer_text, ungrounded)
+            answer_text = _strip_ungrounded(answer_text, ungrounded_spans)
             blocked = True
 
     return {"answer": answer_text, "source_college_ids": bundle["college_ids"], "blocked_ungrounded_figure": blocked, "error": None}

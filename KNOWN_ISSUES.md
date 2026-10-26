@@ -1,12 +1,13 @@
 # Known issues
 
-## A deploy goes live, then runs out of memory at boot
+## A deploy goes live, then runs out of memory at boot (closed)
 
 On 2026-10-23 Render built commit 5741275, fetched the database from the
 `db-v1` release and reported the service live at 22:34 IST. Within a minute it
 logged "Ran out of memory (used over 512MB) while running your code", again at
 22:35, and then restarted about every 90 seconds. `/health` returned an error
-page. The developer rolled production back to d051b37.
+page. Render refused the rollback to d051b37 ("could not roll back", the free
+tier no longer kept that build), so the site stayed down until the fix shipped.
 
 The background load moved the memory peak to after the platform's port check.
 Render marks a deploy live once the port is bound and `/health` answers 200,
@@ -21,7 +22,7 @@ copy (185,945 Gender-Neutral rows from 2018 on) and made another while
 collapsing to one row per group and year. That one step raised the peak working
 set from 216 MB to 637 MB. Nothing after it moved the peak.
 
-Fix, in code and not yet deployed:
+Fix, commit 6b2259c:
 
 - `/ready` returns 503 until every model is published and 200 after. With
   Render's Health Check Path set to `/ready`, a boot that runs out of memory
@@ -37,21 +38,22 @@ Fix, in code and not yet deployed:
 Measured on Windows with Render's thread settings, real uvicorn: boot peak
 working set 639 to 640 MB before, 320 to 324 MB after. Settled after boot 254 to
 259 MB (258 to 264 MB before). After one `/recommend` and one semantic `/chat`
-384 to 389 MB, lifetime peak 409 to 412 MB. Not measured on Linux under a
-512 MB cap: Docker is not installed on the development laptop, and the
-developer chose Windows-only measurement. Windows working set is a regression
-signal, not Render's number.
+384 to 389 MB, lifetime peak 409 to 412 MB. There was no local Linux run under a 512 MB
+cap: Docker is not installed on the development laptop.
 
-This entry closes when a deploy of the fixed commit goes live after the load
-finishes and the live `/health` shows `rss_peak_mb` well under 512 at boot and
-after one semantic `/chat`. Set the Health Check Path to `/ready` before the
-next push.
+Closed 2026-10-26. With the Health Check Path set to `/ready`, the deploy of
+6b2259c answered 503 during the load and 200 after, and Render reported it live
+only then. Live `/health` readings: after a cold wake `rss_mb` 328.3 and
+`rss_peak_mb` 363.6; after another cold wake 318.0 and 352.7; awake a day later
+323.6 and 367.5. The peak sits about 150 MB under the 512 MB limit, so the
+precomputed forecast frame stays unbuilt. Still to take: a live reading after
+one semantic `/chat`.
 
-## Deploys since 799aa7a fail at startup
+## Deploys since 799aa7a fail at startup (closed)
 
-Production still runs d051b37 (2026-08-15). Render built the next two commits,
+Production ran d051b37 (2026-08-15) while Render built the next two commits,
 799aa7a (2026-09-14) and 7423445 (2026-09-15), and both failed with "Exited
-with status 3 while running your code". The live API therefore has no trend
+with status 3 while running your code". The live API therefore had no trend
 labels and no round projections.
 
 Commit 799aa7a removed `college_compass.db` from git and added `*.db` to
@@ -77,26 +79,23 @@ The process exit code was 3. The repository holds no Render configuration (no
 `render.yaml`, `Procfile` or build script), so the build and start commands
 exist only in the Render dashboard.
 
-Fix, in code and not yet deployed: `scripts/fetch_db.py` downloads the
-database from a GitHub release asset during the Render build, decompresses
-it, and checks a pinned SHA-256. A failed download or a checksum mismatch
-fails the build. A failed model load now also exits with status 3 after the
-server has opened its port, so a bad database still fails the deploy. The
-README sections "Build the database" and "The live deployment" carry the
-steps.
+Fix: `scripts/fetch_db.py` downloads the database from a GitHub release asset
+during the Render build, decompresses it, and checks a pinned SHA-256. A failed
+download or a checksum mismatch fails the build. A failed model load also exits
+with status 3 after the server has opened its port, so a bad database still
+fails the deploy. The README sections "Build the database" and "The live
+deployment" carry the steps.
 
-The 2026-10-23 deploy of 5741275 fetched the database and started the service,
-so this cause is fixed. That deploy then ran out of memory (previous entry).
-This entry closes when a deploy of the fixed commit stays up and live
-`/recommend` rows carry `trend` and `rounds`.
+Closed 2026-10-26. The build log of the 6b2259c deploy shows `fetch_db`
+verifying the `db-v1` asset, and the service went live.
 
-## Keep-warm job is disabled
+## Keep-warm job is disabled (closed)
 
-The cron-job.org job "college-compass keep-warm" sends
+The cron-job.org job "college-compass keep-warm" sent
 `GET https://college-compass-il7k.onrender.com/health` every 5 minutes with a
-30 second timeout. Its status is Inactive. The last run, on 2026-09-26, ended
-in "Failed (HTTP error)" after 692 ms, and cron-job.org then disabled the job.
-The execution history is past its retention window.
+30 second timeout. The last run, on 2026-09-26, ended in "Failed (HTTP error)"
+after 692 ms, and cron-job.org then disabled the job. The execution history is
+past its retention window.
 
 A 692 ms failure is a quick error response. That points at Render answering
 with an error status during a restart or a failed redeploy. A slow cold start
@@ -107,16 +106,25 @@ On 2026-10-21 `GET /health` returned 200 in 0.44 s. `HEAD /health` returned
 as an HTTP error. The job is set to GET, so this is not shown to be the cause.
 
 With the job off, the free instance sleeps when idle and the next visitor
-waits through a cold boot with no message on screen. The README says the ping
-runs every ten minutes. That becomes true when the job is re-enabled at the
-new interval.
+waits through a cold boot with no message on screen.
 
-Fix, in code and not yet deployed: `/health` answers GET and HEAD while the
-models load, reports `models_loaded: false` until they finish, and adds
-`rss_mb` and `rss_peak_mb`. After a deploy succeeds, re-enable the job: GET
-`/health`, every 10 minutes, 30 second timeout, failure notification on. The
-job stays on `/health`; `/ready` is a separate route for Render's health check.
-This entry closes once the job has run clean against the new deploy.
+Fix: `/health` answers GET and HEAD while the models load, reports
+`models_loaded: false` until they finish, and adds `rss_mb` and `rss_peak_mb`.
+`/ready` is a separate route for Render's health check.
+
+Closed 2026-10-26. The developer recreated the job: GET
+`https://college-compass-il7k.onrender.com/health`, every 10 minutes, 30 second
+timeout, failure notifications on. It has returned 200 OK since 10:10 IST that
+day. See the next entry for what to do if it is ever paused.
+
+## A sleeping Render instance answers with its own 503 page
+
+On Render free, a sleeping instance answers every request with Render's own
+"waking up" 503 page until the service has started, and a short ping can fail
+to start it. If the keep-warm job is ever paused, open the site once in a
+browser and wait for it to load before turning the job back on. The job must
+use https: the http address returns a 301 redirect, which cron-job.org counts
+as a failure.
 
 ## A request during startup gets a bare 503
 
@@ -142,8 +150,9 @@ expected cost is a few MB, not the 16 to 19 MB the densest harness runs showed.
 Peak working set at boot was about 640 MB then and is about 322 MB after the
 memory fix (first entry).
 
-The Linux effect is not measured. The live `rss_mb` and `rss_peak_mb` on
-Render's `/health` settle whether it matters for the 512 MB limit.
+On Linux the live `rss_mb` after boot read 318.0 to 328.3 MB with a peak of
+352.7 to 367.5 MB (2026-10-26), so whatever the effect is there, it leaves the
+512 MB limit well clear.
 
 ## Grounding validation checks membership in one flat pool, not per-field or per-college attribution
 
@@ -175,108 +184,115 @@ core grounding check - a product invariant - so it needs a deliberate pass
 with its own test coverage, not a quiet change folded into a deploy-readiness
 phase.
 
-## Strip-and-retry can mangle a legitimate number that shares digits with an ungrounded one
+## Strip-and-retry can mangle a legitimate number that shares digits with an ungrounded one (closed)
 
-`_strip_ungrounded` (`models/counsellor.py`) removes an ungrounded number by
-running `re.sub(re.escape(n), "[figure not available in the system's
-data]", stripped)` for each ungrounded number `n` across the entire answer
-text, not just the specific spot where it appeared. If a short ungrounded
-number is also a substring of an unrelated, correctly-grounded number
-elsewhere in the same answer, that unrelated number gets corrupted too,
-even though it individually passed `validate_grounding`.
+Closed 2026-10-26 (Phase 2). `_strip_ungrounded` ran one global `re.sub` per
+flagged number, so a flagged 3 also rewrote the 3 inside a genuine 39655, and a
+flagged 2 turned the year 2025 into "[figure not available in the system's
+data]0[figure not available in the system's data]5". The captured baseline
+answer (`tests/fixtures/baseline/chat_semantic_fuzzy.json`) shows it: the model
+numbered its steps, the validator flagged the markers 1, 2 and 3 as ungrounded,
+and stripping them corrupted real ranks and the year. The same code had a
+second flaw. A flagged figure written with a thousands separator ("12,345") was
+searched for as "12345", never found, and stayed in an answer the system
+reported as blocked.
 
-Concretely, seen in the captured Phase 0 baseline
-(`tests/fixtures/baseline/chat_semantic_fuzzy.json`): the model's answer
-used a markdown numbered list ("1. Check your own rank... 2. Compare your
-rank... 3. Decide which specialisation..."). `extract_numbers` correctly
-flags the bare list markers 1, 2, 3 as ungrounded - they are not real
-system values. But 2 is also a substring of the real, grounded forecast
-year 2025, and 3 is a substring of several real, grounded closing ranks
-(39655, 39676, 30755). Stripping 2 and 3 globally turned 2025 into
-"[figure not available in the system's data]0[figure not available in the
-system's data]5" and 39655 into "[figure not available in the system's
-data]9655" in the final answer - both were genuine, grounded numbers
-before the strip pass ran.
+`extract_numbers` now returns each number with its span, and `_strip_ungrounded`
+replaces only those spans, so neither failure can happen. Bare list ordinals
+(one or two digits at the start of a line, followed by "." or ")", with or
+without bold markers) no longer count as figures: they are formatting, they
+forced a pointless retry, and a model cannot slip a rank through one. A real
+figure inside a list item is still checked. Tests:
+`tests/test_counsellor_strip.py`.
 
-Not fixed here - stripping is meant to run after grounding has already
-been decided, so a fix needs to replace only the specific occurrence
-flagged as ungrounded (by span, not by global substring), not touch every
-other digit-match in the text. That is a targeted change to
-`_strip_ungrounded`, worth its own pass with test coverage rather than a
-drive-by edit inside a deploy-focused phase.
+## Grounded counsellor's context can exceed a free-tier provider's per-minute token limit (closed for mixed questions)
 
-## Grounded counsellor's context can exceed a free-tier provider's per-minute token limit
+Found 2026-07-18 against a real hosted LLM (Groq, `openai/gpt-oss-120b`). A
+question that names a college and asks for alternatives ("colleges similar to
+IIT Delhi") attached the named college's whole cutoff history, 201 rows, next
+to five similar colleges. That prompt came to about 8,477 tokens, over the free
+tier's 8,000 tokens per minute, and the provider answered 413. The counsellor
+treated every exception as an unreachable endpoint and said the language model
+was not reachable. That was wrong: the provider was up and had refused the
+request.
 
-Verified against a real hosted LLM (Groq, `openai/gpt-oss-120b`) on
-2026-07-18. Four question types were manually tested against `POST /chat`:
+Closed 2026-10-26 (Phase 2), in two parts. A provider 413 or 429 now gets its
+own fixed answer ("I couldn't answer that. The language model service behind
+the counsellor refused this request: it was too long, or the service hit its
+usage limit. Wait a minute and ask again, or ask about one college and one
+branch."), distinct from the unreachable message and free of numbers. A
+connection failure still reads as unreachable. And a mixed question now
+attaches at most `MIXED_HISTORY_ROW_CAP` (120) history rows for the named
+college, OPEN rows first so every branch keeps its OPEN row, in a fixed order.
+At 3.4 characters per token (the ratio the 8,477-token report implies for the
+29,058-character prompt) the largest prompt over every college in the database
+is about 6,280 tokens. A live check on the free tier answered "colleges similar
+to IIT Delhi" in 1.7 s. Tests: `tests/test_counsellor_provider.py`,
+`tests/test_counsellor_context_size.py`.
 
-- Structured/forecast (named college + student profile, e.g. "predicted
-  closing rank and admission chance at IIT Bombay Environmental Science and
-  Engineering" for rank 5000 OPEN): returned a real generated answer citing
-  the predicted closing rank, band, and calibrated admission probability,
-  all matching the retrieved context exactly. `blocked_ungrounded_figure`
-  was `false`.
-- Semantic/fuzzy ("comparable colleges to top IITs with a strong CS
-  reputation"): returned real FAISS similarity matches with scores, all
-  grounded and correctly cited.
-- Placement question ("average placement package and starting salary at IIT
-  Bombay CS"): declined with the fixed placement-decline message, before
-  ever reaching the LLM.
-- Out-of-scope general question ("capital of France / when did WW2 end"):
-  the model correctly refused and stayed in JoSAA/JEE Main scope, per the
-  system prompt.
+Still open: a question about one college with no student profile and no request
+for alternatives ("closing ranks for IIT Delhi") attaches every row, about
+8,400 tokens for IIT Delhi, and the free tier refuses it. The student now gets
+the refusal message instead of the unreachable one, but no answer. It is
+uncapped on purpose: Phase 2 caps the mixed case, and Phase 3 will attribute
+the rows attached here. A paid tier, or a provider without the per-minute cap,
+avoids it.
 
-One real failure mode surfaced during testing: a "mixed" question that both
-names a college and asks for alternatives (e.g. "colleges similar to IIT
-Delhi") pulls the named college's full historical per-branch closing-rank
-history plus five semantically similar colleges' data into one context. That
-prompt (about 8,477 tokens) exceeded Groq's free/on-demand tier limit of
-8,000 tokens per minute, and the call failed with a 413 `rate_limit_exceeded`
-from the provider. `models/counsellor.py`'s `except Exception` catches this
-the same way as a genuinely unreachable endpoint and returns the same clean
-"not reachable" message - correct in that it never fabricates an answer, but
-the message doesn't distinguish "the server is down" from "the provider
-rejected this request as too large." A pure semantic question with no named
-college (no per-branch history attached) stayed under the limit and
-succeeded normally.
+If the provider refuses the stricter retry (sent after an ungrounded figure),
+the student still gets the first answer with that figure stripped, not the
+refusal message.
+The retry path gets its stress test in Phase 4.
 
-Not something to fix silently: shrinking the context bundle is a change to
-what the grounding validator can cite from, so it needs a deliberate call
-rather than a quiet patch. Options for later: split a "mixed" question into
-two smaller LLM calls, cap historical branches attached per named college,
-or note in the UI that a paid tier / larger-context provider avoids this.
-For now, on a paid tier or a provider without an aggressive per-minute token
-cap, this does not happen.
+## Counsellor college-name matching can resolve "IIIT X" to "IIT X" (closed)
 
-The retry-on-ungrounded-number path and answer-quality/naturalness were not
-separately stress-tested beyond the four calls above, since none of the four
-real answers ever contained an ungrounded figure to strip.
+Closed 2026-10-26 (Phase 2). Two defects combined. The alias builder keyed its
+short names ("iiit bhubaneswar") on the database's `institute_type`, and four
+colleges whose names say Institute of Information Technology are GFTI in
+that column: International Institute of Information Technology Bhubaneswar and Naya
+Raipur, and Indian Institute of Information Technology Raichur and Senapati
+Manipur. They never got a short alias. And `_match_college` used plain
+substring containment, so "iit bhubaneswar" matched inside "iiit bhubaneswar"
+and the counsellor answered, with grounded data, about the wrong college.
 
-## Counsellor college-name matching can resolve "IIIT X" to "IIT X"
+Short names now come from the canonical name, matched against four phrases (IIT,
+NIT and both IIIT spellings), and an alias only matches as whole words. The
+alias map before and after differs by four new aliases, and every
+question built from an existing alias resolves to the same college as before. Tests:
+`tests/test_counsellor_matching.py`.
 
-Found while capturing README screenshots on 2026-07-18, not a code change
-made in that pass. `models/counsellor_retrieval.py`'s alias generator
-(`_college_aliases`) only recognizes "Indian Institute of Information
-Technology" as the IIIT name prefix. A handful of real IIITs are officially
-named "International Institute of Information Technology" instead (e.g.
-IIIT Bhubaneswar), so no short alias ("iiit bhubaneswar") ever gets
-registered for them - only their full canonical name does.
+## Historical closing ranks mix seat pools and carry no pool or round
 
-That gap turns into a wrong match, not just a missed one: `_match_college`
-picks the longest registered alias that appears as a substring of the
-question. "iiit bhubaneswar" (the student's actual question, lowercased)
-contains "iit bhubaneswar" as a substring, which *is* a registered alias -
-for the unrelated Indian Institute of Technology Bhubaneswar. Asking "what's
-the closing rank for CS at IIIT Bhubaneswar" silently resolves to IIT
-Bhubaneswar instead, and the counsellor gives a grounded, data-accurate
-answer about the wrong college.
+Found 2026-10-26 while sizing the Phase 2 history cap.
+`_historical_closing_ranks` (`models/counsellor_retrieval.py`) selects a
+college's rows for its latest year and one quota with no filter on
+`gender_seat_type`, and its labels name the branch, year, quota and category but
+not the seat pool or the round. For IIT Delhi, 2024, quota AI, that is 201 rows:
+112 Gender-Neutral and 89 Female-only (including Supernumerary). A branch and
+category therefore appears once per pool, with different closing ranks and the
+same label, and the counsellor can state a Female-only rank as the OPEN rank.
+This happens when the question comes without a student profile. With a profile
+the answer comes from the forecast path, which is Gender-Neutral only.
 
-Not fixed here. A fix needs either a second IIIT prefix ("International
-Institute of Information Technology") in `_INSTITUTE_TYPE_PREFIX`, or a
-word-boundary check in `_match_college` instead of plain substring
-containment, so "iiit" never silently matches on an "iit" substring. Small,
-contained fix, but changes matching behavior for every question, so it
-deserves its own pass with test coverage rather than a drive-by edit.
+It breaks the Gender-Neutral-only rule and the rule that every stated figure
+carries college, branch, category, seat pool, year and round. Not fixed in
+Phase 2: the cap there limits how many rows go in the prompt and does not pick
+them by pool. Phase 3 attributes every figure to its row, which is the natural
+place to filter to Gender-Neutral and to put the pool and round in the label.
+Filtering earlier is a one-line change to the query, and it would also shrink
+IIT Delhi's history from 201 rows to 112.
+
+## Numbers written with a space between digit groups split into fragments
+
+Seen in the 2026-10-26 live check. The model answered with closing ranks
+grouped by a narrow no-break space ("39 655"). `NUMBER_PATTERN` reads "39" and
+"655" as two numbers, neither is in the bundle, so the check flagged both and
+sent the answer back for a retry it did not need. The retry returned the plain
+"39655" and passed, so the student saw a correct answer after an extra provider
+call. If a retry keeps the grouping, the strip replaces each fragment on its
+own and the check blocks a real rank. No fabricated figure gets through; it
+errs toward blocking. Not fixed: it sits outside the four Phase 2 bugs. A fix
+would extend `NUMBER_PATTERN` to join digit groups separated by a space or a
+narrow no-break space, and test it against the grounded set.
 
 ## 2023 and 2024 cutoffs have no round breakdown, and cannot be backfilled from any source already in the pipeline
 

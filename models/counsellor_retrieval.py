@@ -34,11 +34,24 @@ SIMILAR_KEYWORDS = ["similar", " like ", "alternative", "instead of", "options n
 TOP_N_STRUCTURED_BRANCHES = 5
 TOP_K_SEMANTIC = 5
 
-_INSTITUTE_TYPE_PREFIX = {
-    "IIT": "indian institute of technology",
-    "NIT": "national institute of technology",
-    "IIIT": "indian institute of information technology",
-}
+# Cap on the named college's cutoff-history rows when the question also asks
+# for alternatives ("colleges similar to IIT Delhi"), which puts that history
+# in one prompt next to five neighbours. Uncapped, IIT Delhi's 201 rows made a
+# prompt of about 8,477 tokens and a free-tier provider refused it (8,000 per
+# minute). At 3.4 characters per token the largest prompt over all colleges
+# (IIT Patna) is about 6,790 tokens at 130 rows and over 7,000 at 140, so 120
+# keeps every college under 7,000 with room for the estimate being off.
+MIXED_HISTORY_ROW_CAP = 120
+
+# Matched against the canonical name, not the database's institute_type: four
+# IIIT-named colleges (Bhubaneswar, Naya Raipur, Raichur, Senapati Manipur)
+# are typed GFTI there, so a lookup by type never gave them a short alias.
+_SHORT_NAME_PHRASES = (
+    ("iit", "indian institute of technology"),
+    ("nit", "national institute of technology"),
+    ("iiit", "indian institute of information technology"),
+    ("iiit", "international institute of information technology"),
+)
 
 # A handful of well-known colloquial nicknames that don't reduce to a clean
 # "{type} {city}" alias even after stripping the institute-type prefix (a
@@ -53,7 +66,7 @@ MANUAL_ALIASES = {
 }
 
 
-def _college_aliases(college_id, canonical_name, institute_type):
+def _college_aliases(college_id, canonical_name):
     """A college's full canonical name plus a short "{type} {city}" alias
     (e.g. "iit bombay") derived from wherever the institute-type phrase
     appears in the canonical name - not just as a prefix, since several NITs
@@ -63,13 +76,13 @@ def _college_aliases(college_id, canonical_name, institute_type):
     """
     lname = canonical_name.lower()
     aliases = [lname]
-    prefix = _INSTITUTE_TYPE_PREFIX.get(institute_type)
-    if prefix:
-        match = re.search(re.escape(prefix), lname)
+    for short, phrase in _SHORT_NAME_PHRASES:
+        match = re.search(re.escape(phrase), lname)
         if match:
             remainder = re.sub(r"[^a-z0-9]+", " ", lname[match.end():]).strip()
             if remainder:
-                aliases.append(f"{institute_type.lower()} {remainder}")
+                aliases.append(f"{short} {remainder}")
+            break
     aliases.extend(MANUAL_ALIASES.get(college_id, []))
     return aliases
 
@@ -85,7 +98,7 @@ def build_lookup_cache(database_url=None):
 
     alias_to_college_id = {}
     for row in colleges.itertuples(index=False):
-        for alias in _college_aliases(row.college_id, row.canonical_name, row.institute_type):
+        for alias in _college_aliases(row.college_id, row.canonical_name):
             alias_to_college_id[alias] = row.college_id
 
     return {"colleges": colleges, "branch_names": sorted(set(branch_names)), "alias_to_college_id": alias_to_college_id}
@@ -93,10 +106,16 @@ def build_lookup_cache(database_url=None):
 
 def _match_college(question, lookup):
     """Longest alias match wins, so a short false positive doesn't shadow a
-    longer, more specific one (e.g. "iit bombay" over a stray "bombay").
+    longer, more specific one (e.g. "iit bombay" over a stray "bombay"). An
+    alias only matches as whole words: "iit bhubaneswar" sits inside "iiit
+    bhubaneswar" as a plain substring, and must not claim it.
     """
     q = question.lower()
-    matches = [(len(alias), college_id) for alias, college_id in lookup["alias_to_college_id"].items() if alias in q]
+    matches = [
+        (len(alias), college_id)
+        for alias, college_id in lookup["alias_to_college_id"].items()
+        if re.search(rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])", q)
+    ]
     if not matches:
         return None
     matches.sort(reverse=True)
@@ -147,7 +166,7 @@ def _record(college_id, year, field, value, label):
     return {"college_id": college_id, "year": year, "field": field, "value": value, "label": label}
 
 
-def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, database_url=None):
+def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, database_url=None, max_rows=None):
     """No student profile given, so there's no eligibility/forecast to run -
     falls back to the real, most recent actual JoSAA closing rank per branch,
     straight from the cutoffs table, clearly labeled as historical rather
@@ -180,6 +199,15 @@ def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, datab
         history = history[history["branch_name"].str.contains(re.escape(branch_filter), case=False, na=False)]
     elif cs_adjacent_only:
         history = history[history["branch_name"].apply(is_cs_adjacent)]
+
+    if max_rows is not None:
+        # OPEN rows first, so every branch keeps its OPEN row, then a fixed
+        # order: the same question always attaches the same rows.
+        history = (
+            history.assign(not_open=history["category"] != "OPEN")
+            .sort_values(["not_open", "branch_name", "category", "closing_rank"])
+            .head(max_rows)
+        )
 
     records = []
     for row in history.itertuples(index=False):
@@ -228,11 +256,11 @@ def _forecast_records(college_id, student, forecasts, reference_tables, probabil
     return records
 
 
-def _structured_records_for_college(college_id, student, model_state, branch_filter=None, cs_adjacent_only=False):
+def _structured_records_for_college(college_id, student, model_state, branch_filter=None, cs_adjacent_only=False, history_row_cap=None):
     """Real numbers for one college: predicted closing rank / band / P(admit)
     per eligible branch if a student profile is given, else the latest
-    actual historical closing rank per branch. Always adds NIRF rank and
-    fees if on record.
+    actual historical closing rank per branch (at most history_row_cap rows
+    when given). Always adds NIRF rank and fees if on record.
     """
     if student is not None:
         records = _forecast_records(
@@ -245,7 +273,7 @@ def _structured_records_for_college(college_id, student, model_state, branch_fil
             cs_adjacent_only,
         )
     else:
-        records = _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only)
+        records = _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, max_rows=history_row_cap)
 
     colleges, _programs, reference_metadata = model_state["reference_tables"]
     college_row = colleges[colleges["college_id"] == college_id]
@@ -339,17 +367,23 @@ def build_context_bundle(question, student_profile_dict, model_state):
     matched_branch = _match_branch(question, lookup["branch_names"])
     cs_adjacent_only = matched_branch is None and _wants_cs_adjacent(question)
 
+    wants_semantic = _wants_semantic(question)
     records = []
     college_ids = []
     if matched_college:
         records.extend(
             _structured_records_for_college(
-                matched_college, student, model_state, branch_filter=matched_branch, cs_adjacent_only=cs_adjacent_only
+                matched_college,
+                student,
+                model_state,
+                branch_filter=matched_branch,
+                cs_adjacent_only=cs_adjacent_only,
+                history_row_cap=MIXED_HISTORY_ROW_CAP if wants_semantic else None,
             )
         )
         college_ids.append(matched_college)
 
-    if not matched_college or _wants_semantic(question):
+    if not matched_college or wants_semantic:
         semantic_records = _semantic_records(
             question, model_state, exclude_college_ids=set(college_ids), student=student, cs_adjacent_only=cs_adjacent_only
         )

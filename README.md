@@ -221,10 +221,15 @@ so a boot that runs out of memory fails the deploy and the live site stays up.
 The boot reads only the cutoff rows and columns the forecast uses, in chunks,
 and hands the freed Arrow buffers back to the system. On a Windows
 measurement that cut the boot peak from about 640 MB to about 320 MB. The live
-`rss_peak_mb` on `/health` is the number that counts against the 512 MB limit.
+numbers on Render (2026-10-26) are `rss_mb` 318 to 328 MB after boot and
+`rss_peak_mb` 353 to 368 MB, against the 512 MB limit.
 
 A cron-job.org job keeps the free instance awake: `GET /health` every 10
-minutes with a 30 second timeout, failure notification on.
+minutes with a 30 second timeout, failure notification on. Use the https
+address, because http returns a 301 that cron-job.org counts as a failure. A
+sleeping Render instance answers with its own 503 "waking up" page, and a
+short ping can fail to start it. If the job is ever paused, open the
+site once in a browser and wait for it to load before you turn the job back on.
 
 ## How it works
 
@@ -334,18 +339,18 @@ Stated plainly, because a hidden limitation is worse than a stated one.
   college. In a multi-college answer, a genuinely real figure could in
   principle get attached to the wrong college. Documented in
   [KNOWN_ISSUES.md](KNOWN_ISSUES.md), not yet hardened.
-- **Large mixed questions can hit provider rate limits.** A counsellor
-  question that both names a college and asks for alternatives can build a
-  context large enough to exceed a free-tier LLM provider's per-minute
-  token cap. The resulting error message doesn't yet distinguish that from
-  a truly dead endpoint.
-- **Don't trust short IIIT aliases for a handful of colleges, until fixed.**
-  Colleges officially named "International Institute of Information
-  Technology" (instead of the more common "Indian Institute of Information
-  Technology") have their short name ("IIIT Bhubaneswar") silently resolve
-  to the wrong, similarly-named IIT. The counsellor's answer is grounded in
-  real data, but it's about the wrong college: ask by full official name
-  for these until the underlying matcher is fixed.
+- **A counsellor question about one college, with no rank given, can still
+  hit a free-tier provider's rate limit.** It attaches every cutoff row for
+  that college, which can exceed the provider's per-minute token cap. The
+  counsellor then says the provider refused the request and suggests a
+  narrower question, instead of reporting the model as down. Questions that
+  also ask for alternatives stay under the cap.
+- **Closing ranks quoted without a rank can mix seat pools.** With no rank
+  and category, the counsellor falls back to a college's latest actual
+  closing ranks, and those include Female-only seats without saying which
+  pool a rank belongs to. With a rank and category the answer comes from the
+  Gender-Neutral forecast. Documented in [KNOWN_ISSUES.md](KNOWN_ISSUES.md),
+  not yet fixed.
 - **The backend runs on a free instance: 512MB RAM, a fraction of a CPU.**
   Requests are slower than the screenshots suggest.
 - **The first counsellor question that doesn't name a specific college is
