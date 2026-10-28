@@ -624,11 +624,15 @@ def chat(request: ChatRequest):
     bundle = build_context_bundle(request.question, student_profile_dict, model_state)
     result = generate_answer(request.question, bundle)
 
-    return {
+    response = {
         "answer": result["answer"],
         "source_college_ids": result["source_college_ids"],
         "blocked_ungrounded_figure": result["blocked_ungrounded_figure"],
     }
+    # Additive and optional: present only when a figure could not be verified.
+    if result.get("verification") is not None:
+        response["verification"] = result["verification"]
+    return response
 
 
 # Serves the built frontend (`npm run build` in frontend/) when it exists, so

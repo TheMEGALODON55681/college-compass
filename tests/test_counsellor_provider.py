@@ -57,19 +57,26 @@ def test_provider_rejection_gets_its_own_fixed_answer(monkeypatch, error):
     assert result["source_college_ids"] == BUNDLE["college_ids"]
 
 
-def test_rejection_during_the_retry_still_strips_the_first_answer(monkeypatch):
-    """Only the first call decides between the two fixed answers. If the
-    stricter retry is refused, the first answer is already in hand: its
-    ungrounded figure is stripped and the rest is returned, as before.
+@pytest.mark.parametrize(
+    "error",
+    [_rejection(openai.APIStatusError, 413), _rejection(openai.RateLimitError, 429)],
+    ids=["413", "429"],
+)
+def test_rejection_during_the_retry_returns_the_refusal_message(monkeypatch, error):
+    """If the stricter retry is refused (a retry resends the whole prompt, so on
+    the free tier it is the call most likely to be), the first answer holds a
+    figure the validator rejected and there is no second call to fix it. The caller gets
+    the provider-refusal message, which carries no number, not a half-answer.
     """
     first = "The predicted closing rank is 99999 for 2025."
-    retry_error = _rejection(openai.RateLimitError, 429)
-    monkeypatch.setattr("models.counsellor._client", lambda: FakeClient([first, retry_error]))
+    monkeypatch.setattr("models.counsellor._client", lambda: FakeClient([first, error]))
 
     result = generate_answer(QUESTION, BUNDLE)
 
-    assert result["answer"] == "The predicted closing rank is [figure not available in the system's data] for 2025."
+    assert result["answer"] == PROVIDER_REJECTED_ANSWER
+    assert not re.search(r"\d", result["answer"])
     assert result["blocked_ungrounded_figure"] is True
+    assert "verification" not in result
 
 
 def test_connection_error_still_reads_as_unreachable(monkeypatch):

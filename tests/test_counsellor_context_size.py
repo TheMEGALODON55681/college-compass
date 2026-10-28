@@ -2,7 +2,11 @@
 similar to IIT Delhi") must not attach the named college's whole cutoff
 history: that prompt came to about 8,477 tokens and a free-tier provider
 refused it (a 413 against an 8,000 tokens-per-minute limit). The cap applies
-to this mixed case only; a question about one college keeps every row.
+whenever the history shares the prompt: this mixed case, and a one-college
+question that comes with a student profile (its forecast rows sit beside the
+history). A one-college question without a profile keeps up to 112 rows; IIT
+Delhi has exactly 112, so it keeps them all (a college with more, such as IIT
+Patna with 149, does not).
 
 Real lookup, reference tables and similarity index; only the encoder is a
 stub, since the size under test is the attached history, not the neighbours.
@@ -53,7 +57,7 @@ def _bundle_and_prompt(question, state, monkeypatch):
 
 
 def _open_rows(records):
-    return Counter((r["label"], r["value"]) for r in records if r["field"] == "actual_closing_rank" and r["label"].endswith("category OPEN"))
+    return Counter((r["label"], r["value"]) for r in records if r["field"] == "actual_closing_rank" and r["category"] == "OPEN")
 
 
 def test_mixed_question_prompt_stays_under_the_provider_limit(state, monkeypatch):
@@ -78,6 +82,7 @@ def test_mixed_question_keeps_every_open_row_of_the_named_college(state, monkeyp
     bundle, _prompt = _bundle_and_prompt("colleges similar to IIT Delhi", state, monkeypatch)
 
     full_history = _historical_closing_ranks(IIT_DELHI, None, False)
+    assert sum(_open_rows(full_history).values()) > 0, "no OPEN row to compare: the test would prove nothing"
     assert _open_rows(bundle["records"]) == _open_rows(full_history)
 
 

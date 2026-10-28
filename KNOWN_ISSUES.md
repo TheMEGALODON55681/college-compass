@@ -190,7 +190,7 @@ for either: "IIT Delhi and IIT Bombay have closing ranks of 116 and 68" passes
 with the figures swapped. Telling the two apart reliably means parsing English
 clause structure, and a stricter rule would block faithful answers written as
 "A and B have X and Y". Splitting at semicolons catches the swap when the
-model writes two clauses. Eight more limits:
+model writes two clauses. Six more limits:
 
 - A branch is read only by its full name as the records spell it. "CSE" and
   "Computer Science" name no branch, so a Computer Science rank given for
@@ -201,17 +201,12 @@ model writes two clauses. Eight more limits:
   appears, so a closing rank of exactly 2024 is not attributed. The old flat
   check had the same property.
 - A rank stated with no branch, category, year or round still passes when the
-  college and value match. The rule that a figure must carry all six fields
-  before the student sees it belongs to the escalation work in Phase 4.
-- A branch name with an abbreviation in it, such as "Integrated B. Tech. - M.
-  Tech in Civil Engineering", is cut at its full stops. The segment that holds
-  the figure then names no branch, year or category, so the validator checks
-  none of them.
-- A college name that contains a branch name counts as naming that branch.
-  "Indian Institute of Information Technology" names Information Technology,
-  so at that college a figure written beside "Information
-  Technology-Business Informatics" can pass with the plain Information
-  Technology rank.
+  college and value match. Every label now carries all six fields (Phase 4a),
+  but the validator checks only what a sentence states. The verification note
+  is where a figure always carries all six.
+- Four of the 3,969 wrong-branch sentences in the Phase 3 sweep still pass after
+  Phase 4a (151 before): each states a small value (2 or 4) that also belongs to
+  another record of the college.
 - A cue word is read on the left of a figure first, and a cue on the right
   counts only when none sits on the left. "NIRF ranks IIT Delhi high, 204 is
   the closing rank for OPEN" reads 204 as a NIRF rank and flags it, though the
@@ -278,17 +273,20 @@ to IIT Delhi" in 1.7 s. Tests: `tests/test_counsellor_provider.py`,
 
 Phase 3 shrank the case that stayed open after Phase 2. A question about one
 college with no student profile and no request for alternatives ("closing ranks
-for IIT Delhi") attaches every row and stays uncapped on purpose. Limiting the
+for IIT Delhi") attached every row and stayed uncapped on purpose (capped at 112
+rows since Phase 4a, below). Limiting the
 history to Gender-Neutral seats cut IIT Delhi's prompt from about 8,400 to about
 4,800 tokens. Over the 101 colleges a canonical-name question matches, the median
 is about 1,600 tokens and the largest is IIT Patna at about 7,200 (149 rows), so
 none reaches 8,000 by the same 3.4 characters-per-token estimate. Two questions
 inside one minute can still draw a refusal from a free tier.
 
-If the provider refuses the stricter retry (sent after an ungrounded figure),
-the student still gets the first answer with that figure stripped, not the
-refusal message.
-The retry path gets its stress test in Phase 4.
+Closed 2026-10-28 (Phase 4a). A retry resends the whole prompt, so on a free
+tier it is the call most likely to be refused. A 413 or 429 on the retry now
+returns the same fixed refusal message, with no figure in it, instead of the
+first answer with one figure stripped. An empty first completion reads as
+unreachable instead of raising. Tests: `tests/test_counsellor_provider.py`,
+`tests/test_counsellor_retry.py`.
 
 ## Counsellor college-name matching can resolve "IIIT X" to "IIT X" (closed)
 
@@ -365,6 +363,112 @@ they were 7,880 and 8,707. A college listed as an alternative still shows only
 what the student can reach. Two golden fixtures that pinned the empty bundle,
 `chat_structured_named_college` and `chat_grounding_stress_extrapolation`, now
 list the IIT Bombay rows. Tests: `tests/test_counsellor_out_of_reach.py`.
+
+## Phase 4a closed the findings of the Phase 3b review and two Phase 3 false accepts (closed)
+
+Closed 2026-10-28. A jury review of the Phase 3b code found three defects. A
+student's software question about a college with no Gender-Neutral rows (the four
+colleges below) returned HTTP 500: the history query filtered an empty frame and
+sorted on a column it did not have. The 90-row cap sorted OPEN first and then by
+branch name, so a reserved-category student at a college with more than 90 rows
+(seven of them) lost their own row: "CSE at IIT Patna" for an SC student kept
+OPEN 3144 and dropped SC 681. And the phrase "I'd like to know" matched the
+"like" keyword for similar colleges, which dropped the named college's history.
+The history now returns no rows for an empty frame, keeps OPEN and the student's
+or question's own category first, and reads "like" only as a comparison (with
+straight and curly apostrophes). The Phase 3 sweep also left two false accepts.
+A branch name or a college name with full stops ("B. Tech. (CSE) and M.Tech in
+CSE", "Dr. B R Ambedkar National Institute of Technology") was cut by the
+sentence splitter, and a college name that holds a branch name ("Indian Institute
+of Information Technology") counted as naming that branch. Neither cuts or counts
+any more. Wrong-branch figure accepted: 4 of 3,969 (151 of the same sentences
+before). Faithful sentence rejected: 12 of 4,149, all the NERIST postal code,
+unchanged. Tests: `tests/test_counsellor_history_edges.py`,
+`tests/test_counsellor_branch_names.py`.
+
+Labels and caps (Phase 4a). Every closing rank, forecast, band and probability
+now reads with its branch and program (so IIT Delhi's four-year B.Tech and
+five-year dual degree rows differ), category, seat pool and round, and the line
+carries the college and year. That made each row longer, so the history caps
+are now 60 rows next to alternatives, 90 with a student profile and 112 for
+one college with no profile. Worst prompt over 133 colleges, 16 profiles and two
+phrasings: 6,668, 6,303 and 6,618 tokens. IIT Patna with no profile used to
+reach 7,202 tokens and is now under 7,000.
+
+Program check (Phase 4a). A sentence that names a program by its length, in the
+label's wording or in the ones a model writes ("four-year BTech", "4-yr
+B.Tech.", "BTech (4 years)", "**4-year** BTech", "Bachelor of Technology (4
+years)"), now holds its figure to that program's rows. Before, IIT Delhi's
+dual-degree rank passed under a four-year label. Over 1,332 wrong-program
+sentences written from real rows in six spellings, accepted: 0 (1,332 with the
+check off). Faithful sentences rejected: 83 of 24,894, the same with the check
+off: the NERIST postal code in every spelling (72) and CSVTU Bhilai's degree
+name "B Tech / B Tech (Hons) (4 years)" when the length follows it (11). A length
+with no program word beside it ("the last 5 years", "a 5-year trend") stays a
+figure. Tests: `tests/test_counsellor_labels.py`.
+
+## Counsellor limits found while building the Phase 4a question set
+
+Open, logged on 2026-10-28, none fixed in Phase 4a.
+
+- The history ignores the student's home state. A college with no All India
+  quota rows falls back to Other State, so a Tamil Nadu student asking about NIT
+  Trichy sees the Other State rank (1224) and not the Home State rank (5066).
+  About 35 colleges. Choosing the quota is a policy call.
+- "CSE" is not read as a branch by the retriever. Next to a request for
+  alternatives, a student who can reach other branches of the named college has
+  a non-empty forecast, so its history is not attached and the Computer Science
+  row is missing. Attaching it would push "colleges similar to IIT Patna" to
+  about 7,900 tokens for an in-reach student. Reading "CSE" as a branch fixes it
+  at the root and changes `test_branch_the_question_does_not_name_precisely_keeps_its_history_beside_reachable_branches`,
+  whose premise is that "CSE" matches nothing.
+- A NIRF rank, a fee and a similarity score are college-level. They have no
+  branch, category, seat pool or round, so they cannot carry the six fields that
+  Rules.md section 6 asks of every number the counsellor states. They are stated
+  with the college and never offered as the closest figure in a verification
+  note. Applying the rule to them would remove them from the counsellor.
+- Short names such as "MNIT Jaipur" match no college (the alias is "nit
+  jaipur", matched as whole words).
+- A question that names two colleges bundles one: the longer alias wins, and the
+  other college gets no records.
+- A branch the college does not offer ("Quantum Engineering" at NIT Warangal)
+  falls back to the nearest branch by core name, so the bundle holds that
+  branch's ranks.
+- The history holds the latest year only. A question about an older season
+  ("2021") gets 2024.
+- A sentence that names no program, or says only "dual degree", is not held to
+  one: "the OPEN closing rank for Computer Science and Engineering at IIT Delhi
+  in 2024 was 204" passes although 204 is the dual degree's rank. The prompt
+  asks the model to give the program. Holding a bare sentence to one program
+  would also reject faithful single-program answers.
+- A length with no program word beside it, or beside a degree the validator does
+  not list (B.Sc., B.Des., "B.Tech + M.Tech (5 years)"), stays a figure. Written
+  without a program word ("Computer Science and Engineering (4 years)") it is
+  flagged and costs a retry; it never states a wrong number.
+- A sentence that names one length and then the other program by name, such as
+  "the four-year BTech closes at 116 and the dual degree at 204", flags 204. It
+  costs a retry and never states a wrong number.
+- Evaluation question V10 ("the OPEN closing rank for Computer Science at IIIT
+  Allahabad") cannot be answered. The branch matcher takes "Computer Science",
+  a branch name at IIIT Lucknow, and filters Allahabad's history to nothing, so
+  the bundle holds the fee only. The set is not edited (its hash is recorded),
+  so every arm scores a miss on V10; Phase 4b reports it apart.
+- A retry resends the whole prompt and the first answer. Estimated at 3.4
+  characters per token, a named-college question above about 3,900 tokens puts
+  two calls over the provider's 8,000 tokens a minute, so the retry often draws a
+  429 and the counsellor answers with the refusal message and no note. Phase 4b
+  has to pace its calls, and arm C will count refusals.
+- When a retry is refused the response sets `blocked_ungrounded_figure` and the
+  refusal message; the current frontend then adds "a figure was left out". The
+  Phase 4b note should key off `verification`, not that flag.
+- The note's wording is fixed: a claim about a NIRF rank or a fee gets "nothing
+  close to it is on record" although the college's NIRF rank and fee are held,
+  and two removed figures still read "a figure".
+- "I'd also like the closing rank for CSE at IIT Delhi" counts as a request for
+  similar colleges ("like" after another word), so the encoder loads for a
+  one-college question. Only "I'd like" and "I would like" are exempt.
+- Next to a request for alternatives, IIT Patna with OBC-NCL (64 rows) or SC (62)
+  has more than the 60 rows the cap allows and loses the last branches' rows.
 
 ## Four colleges with only 2016 or 2017 data have an empty counsellor history
 

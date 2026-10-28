@@ -311,15 +311,27 @@ stale.
 **Grounded counsellor.** The system routes a question to structured lookup
 (a named college: its latest actual closing ranks, plus the forecast and
 probability numbers `/recommend` already computed when the student gave a rank)
-or semantic retrieval (FAISS similarity, for fuzzier questions), building a
-context bundle where every fact carries its own source. A closing rank or probability records its college, branch,
-category, quota, seat pool, year and round. The language model answers from
-that bundle, and a code-level validator checks every number in the answer
-against it before the answer is ever returned. The validator reads which
-college, branch, year, category, seat pool and round each sentence names, and
-whether a number sits beside "closing rank", "NIRF", "fees" or "probability".
-It accepts the number only if a record agrees on everything the sentence
-states.
+or semantic retrieval (FAISS similarity, for fuzzier questions). Either way it
+builds a context bundle where every fact carries its own source.
+
+A closing rank or probability records its college, branch, program, category,
+quota, seat pool, year and round. The line the model reads carries the branch
+and its program (IIT Delhi's four-year B.Tech and five-year dual degree share a
+branch name), category, seat pool and round, after the college and year. The
+language model answers from that bundle, and a code-level validator checks every
+number in the answer against it before the answer is returned.
+
+The validator reads which college, branch, program length, year, category, seat
+pool and round each sentence names, and whether a number sits beside "closing
+rank", "NIRF", "fees" or "probability". It accepts a number only if a record
+agrees on everything the sentence states.
+
+If a figure is still unsupported after one stricter retry, the counsellor removes
+it and the response carries a `verification` note. The note gives the closest
+figure on record, chosen by fixed rules, with its college, branch, program,
+category, seat pool, quota, year and round, or says plainly that nothing close is
+on record. It states a figure only as its own record reads, so it never pairs a
+value with the wrong college, branch, program, category, year or round.
 
 ## Scope and limitations
 
@@ -341,23 +353,24 @@ Stated plainly, because a hidden limitation is worse than a stated one.
   rank; EWS/OBC-NCL/SC/ST use category rank, matching how JoSAA actually
   publishes its own cutoffs.
 - **Grounding judges one sentence at a time.** The validator checks each
-  number against the records for the college, branch, year, category, seat
-  pool, round and kind of figure its sentence names, and skips whatever the
-  sentence leaves out. Two colleges or two categories in the same sentence
-  can swap their figures without a flag. It reads a branch only by its full
-  name as the records spell it ("Computer Science and Engineering", not
-  "CSE"), and it never reads a quota. Detail in
+  number against the records for the college, branch, program length, year,
+  category, seat pool, round and kind of figure its sentence names, and skips
+  whatever the sentence leaves out. Two colleges or two categories in the same
+  sentence can swap their figures without a flag. It reads a branch only by its
+  full name as the records spell it ("Computer Science and Engineering", not
+  "CSE"), a program only by its length ("four-year BTech", "5-year dual
+  degree", not "dual degree" alone), and it never reads a quota. Detail in
   [KNOWN_ISSUES.md](KNOWN_ISSUES.md).
-- **A counsellor question about one college, with no rank given, sends
-  every Gender-Neutral cutoff row of its latest year.** That is about 4,800
-  tokens for IIT Delhi and about 7,200 for IIT Patna, the largest of the 101
-  colleges measured, against a free-tier limit of 8,000 tokens a minute. With
-  a rank given, or with a request for alternatives, it sends at most 90 of
-  those rows, OPEN rows first. The largest prompt measured is then 5,391
-  tokens for one college and 6,644 with alternatives. Two questions in one
-  minute can still draw a refusal. The counsellor then says the provider
-  refused the request and suggests a narrower question, instead of reporting
-  the model as down.
+- **A counsellor question about a college sends at most 112, 90 or 60 of its
+  Gender-Neutral cutoff rows from the latest year,** to stay under the
+  free-tier limit of 8,000 tokens a minute: 112 with no rank given, 90 with a
+  rank, 60 next to a request for alternatives. OPEN rows and the student's own
+  category come first. The largest prompt measured over 133 colleges, 16
+  profiles and two phrasings is 6,303 tokens with a rank, 6,618 with no
+  rank and 6,668 with alternatives. Two questions in one minute can still draw a
+  refusal, and so can a retry, which resends the whole prompt. The counsellor
+  then says the provider refused the request and suggests a narrower question,
+  instead of reporting the model as down.
 - **The backend runs on a free instance: 512MB RAM, a fraction of a CPU.**
   Requests are slower than the screenshots suggest.
 - **The first counsellor question that doesn't name a specific college is

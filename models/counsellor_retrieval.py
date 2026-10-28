@@ -33,26 +33,30 @@ from models.ranker import CS_ADJACENT_KEYWORDS, is_cs_adjacent
 from models.regressor_dataset import TRAINING_GENDER as GENDER_NEUTRAL
 
 PLACEMENT_KEYWORDS = ["placement", "package", "salary", "ctc", "job offer", "stipend", "internship pay"]
-SIMILAR_KEYWORDS = ["similar", " like ", "alternative", "instead of", "options near", "comparable", "other colleges"]
+SIMILAR_KEYWORDS = ["similar", "alternative", "instead of", "options near", "comparable", "other colleges"]
+# "colleges like IIT Delhi", not "I'd like to know" or "I would like a list".
+LIKE_AS_COMPARISON = re.compile(r"(?<!['’]d)(?<!would)\s+like\s+(?!to\b|a\b|an\b|some\b)")
 
 TOP_N_STRUCTURED_BRANCHES = 5
 TOP_K_SEMANTIC = 5
 
-# Cap on the named college's cutoff-history rows when that history shares the
-# prompt with other records: the question also asks for alternatives ("colleges
-# similar to IIT Delhi", five neighbours), or comes with a student profile
-# (forecast rows for the named college and for each neighbour). Uncapped, IIT
-# Delhi's 201 rows (before the history was limited to Gender-Neutral seats) made
-# a prompt of about 8,477 tokens and a free-tier provider refused it (8,000 per
-# minute). At 3.4 characters per token the largest no-profile mixed prompt over
-# all colleges (IIT Patna) is about 6,620 tokens at 130 rows and 7,014 at 140.
-# With a profile, over every college, 16 profiles and two phrasings (full name,
-# shortest alias), the worst prompt for "closing ranks for X" is 7,880 tokens
-# uncapped (32 of 3,536 over 7,000) and 5,391 at 90 rows; for "colleges similar
-# to X" it is 8,707 uncapped, 7,516 at 120 rows (7 of 4,256 over 7,000) and 6,644
-# at 90, so 90 keeps every prompt under 7,000 with room for the estimate being
-# off.
+# Caps on the named college's cutoff-history rows, so the prompt stays under the
+# free-tier provider's limit (8,000 tokens a minute; the repo's line is 7,000).
+# Each row's label carries branch, program, category, seat pool and round, and the
+# line carries the college and year. Measured at 3.4 characters per token over
+# every college, 16 profiles and two phrasings (full name, shortest alias), real
+# neighbours, with the category-aware order below:
+# - Alongside alternatives ("colleges similar to IIT Delhi", five neighbours whose
+#   forecast rows share the prompt): worst prompt 8,036 tokens at 90 rows (11 of
+#   4,256 over 7,000), 7,097 at 70, 6,623 at 60. No college has more than 32 OPEN
+#   rows, so every branch keeps its OPEN row.
+# - With a student profile (the named college's forecast rows share the prompt):
+#   6,257 at 90 rows (IIT Patna).
+# - No profile, one college: 6,953 at 120 rows and 6,025 at 100 (IIT Patna, 149
+#   rows). IIT Delhi has 112 rows and keeps them all.
+ALTERNATIVES_HISTORY_ROW_CAP = 60
 SHARED_HISTORY_ROW_CAP = 90
+SOLO_HISTORY_ROW_CAP = 112
 
 # Matched against the canonical name, not the database's institute_type: four
 # IIIT-named colleges (Bhubaneswar, Naya Raipur, Raichur, Senapati Manipur)
@@ -158,6 +162,17 @@ def _match_branch(question, branch_names):
     return min(core_matches, key=len) if core_matches else None
 
 
+_CATEGORY_WORDS = (("open", "OPEN"), ("ews", "EWS"), ("obc", "OBC-NCL"), ("sc", "SC"), ("st", "ST"))
+
+
+def _categories_in(question):
+    """The reserved categories a question names, in the API's vocabulary, so a
+    capped history keeps their rows when there is no student profile to say.
+    """
+    q = question.lower()
+    return frozenset(api for word, api in _CATEGORY_WORDS if re.search(rf"(?<![a-z0-9]){word}(?![a-z0-9])", q))
+
+
 def _wants_cs_adjacent(question):
     q = question.lower()
     return any(kw in q for kw in CS_ADJACENT_KEYWORDS)
@@ -170,7 +185,42 @@ def is_placement_question(question):
 
 def _wants_semantic(question):
     q = question.lower()
-    return any(kw in q for kw in SIMILAR_KEYWORDS)
+    return any(kw in q for kw in SIMILAR_KEYWORDS) or bool(LIKE_AS_COMPARISON.search(q))
+
+
+_DURATION_WORDS = {4: "four-year", 5: "five-year"}
+
+
+def _program_tag(degree_type, duration_years):
+    """The program a branch row belongs to, so IIT Delhi's 4-year B.Tech and its
+    5-year dual degree, which share the branch name "Computer Science and
+    Engineering", read differently. No digits and no full stops: the grounding
+    check reads every digit group in an answer as a figure, and a full stop
+    inside a label ("B. Tech.") would split the model's sentence.
+    """
+    lowered = degree_type.lower()
+    if "dual" in lowered:
+        kind = "dual degree"
+    elif "integrated" in lowered:
+        kind = "integrated"
+    elif degree_type == "Bachelor of Technology":
+        kind = "BTech"
+    else:
+        kind = degree_type.replace(".", "")
+    return f"{_DURATION_WORDS.get(duration_years, f'{duration_years}-year')} {kind}"
+
+
+def _admission_label(what, branch, program, category, round_, quota=None):
+    """What the model reads beside an admission figure: branch with its program,
+    category, seat pool and round. The line it sits on starts with the college
+    and the year (models/counsellor._format_context), so the six fields are
+    all on the line; repeating the year here would cost a few thousand tokens
+    over a long history. A year with no round breakdown, and the forecast, say
+    so instead of leaving the round out.
+    """
+    round_part = f"round {round_}" if round_ is not None else "no round data"
+    quota_part = f", quota {quota}" if quota else ""
+    return f"{branch} ({program}) {what}, {category}, {GENDER_NEUTRAL}, {round_part}{quota_part}"
 
 
 def _record(college_id, year, field, value, label, **attribution):
@@ -184,11 +234,12 @@ def _record(college_id, year, field, value, label, **attribution):
     return {"college_id": college_id, "year": year, "field": field, "value": value, "label": label, **attribution}
 
 
-def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, database_url=None, max_rows=None):
-    """No student profile given, so there's no eligibility/forecast to run -
-    falls back to the real, most recent actual JoSAA closing rank per branch,
-    straight from the cutoffs table, clearly labeled as historical rather
-    than predicted.
+def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, database_url=None, max_rows=None, categories=()):
+    """The real, most recent actual JoSAA closing rank per branch, straight
+    from the cutoffs table, clearly labeled as historical rather than
+    predicted. Used when there is no student profile (no eligibility or
+    forecast to run) and, beside the forecast rows, for a college the question
+    names.
 
     Quota AI (All India) is preferred since it's the quota every student
     competes under regardless of home state, but not every college has any
@@ -205,7 +256,7 @@ def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, datab
     query = text(
         """
         WITH ranked AS (
-            SELECT cu.year, cu.program_id, p.branch_name, cu.category, cu.quota, cu.round, cu.closing_rank,
+            SELECT cu.year, cu.program_id, p.branch_name, p.degree_type, p.duration_years, cu.category, cu.quota, cu.round, cu.closing_rank,
                    ROW_NUMBER() OVER (
                        PARTITION BY cu.program_id, cu.category
                        ORDER BY (cu.round IS NULL) ASC, cu.round DESC
@@ -220,13 +271,17 @@ def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, datab
                   WHERE college_id = :college_id AND quota = :quota AND gender_seat_type = :pool
               )
         )
-        SELECT year, program_id, branch_name, category, quota, round, closing_rank FROM ranked WHERE rn = 1
+        SELECT year, program_id, branch_name, degree_type, duration_years, category, quota, round, closing_rank FROM ranked WHERE rn = 1
         """
     )
     params = {"college_id": college_id, "pool": GENDER_NEUTRAL}
     history = pd.read_sql(query, engine, params={**params, "quota": "AI"})
     if history.empty:
         history = pd.read_sql(query, engine, params={**params, "quota": "OS"})
+    if history.empty:
+        # Four colleges have only pre-2018 data, so no Gender-Neutral row. The
+        # branch filters and the sort below need the columns a row set has.
+        return []
 
     if branch_filter:
         history = history[history["branch_name"].str.contains(re.escape(branch_filter), case=False, na=False)]
@@ -234,26 +289,27 @@ def _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, datab
         history = history[history["branch_name"].apply(is_cs_adjacent)]
 
     if max_rows is not None:
-        # OPEN rows first, so every branch keeps its OPEN row, then a fixed
+        # OPEN rows and the categories the student or the question names first,
+        # so every branch keeps the rows that can be used (OPEN plus one
+        # category is at most 64 rows at any college; the alternatives cap of 60
+        # can leave out IIT Patna's last branches for OBC-NCL or SC), then a fixed
         # order: the same question always attaches the same rows.
-        history = (
-            history.assign(not_open=history["category"] != "OPEN")
-            .sort_values(["not_open", "branch_name", "category", "closing_rank"])
-            .head(max_rows)
-        )
+        wanted = history["category"].isin({"OPEN", *categories})
+        history = history.assign(not_wanted=~wanted).sort_values(["not_wanted", "branch_name", "category", "closing_rank"]).head(max_rows)
 
     records = []
     for row in history.itertuples(index=False):
         round_ = int(row.round) if pd.notna(row.round) else None
-        round_part = f", round {round_}" if round_ is not None else ""
+        program = _program_tag(row.degree_type, row.duration_years)
         records.append(
             _record(
                 college_id,
                 int(row.year),
                 "actual_closing_rank",
                 int(row.closing_rank),
-                f"{row.branch_name} actual JoSAA closing rank {row.year}, quota {row.quota}, category {row.category}{round_part}",
+                _admission_label("closing rank", row.branch_name, program, row.category, round_, row.quota),
                 program_id=row.program_id,
+                program=program,
                 branch=row.branch_name,
                 category=row.category,
                 quota=row.quota,
@@ -277,26 +333,29 @@ def _forecast_records(college_id, student, forecasts, reference_tables, probabil
     elif cs_adjacent_only:
         rows = [r for r in rows if is_cs_adjacent(r["branch_name"])]
 
+    programs = reference_tables[1].set_index("program_id")
     records = []
     for r in rows[:TOP_N_STRUCTURED_BRANCHES]:
         has_lag = r["prediction_source"] == "delta_model"
         probability = predict_admission_probability(r["predicted_closing_rank"], student.jee_rank, has_lag, probability_artifacts)
+        program = _program_tag(programs.at[r["program_id"], "degree_type"], int(programs.at[r["program_id"], "duration_years"]))
         # The forecast is Gender-Neutral and not tied to a counselling round.
-        row = {"program_id": r["program_id"], "branch": r["branch_name"], "category": student.category, "quota": r["quota_used"], "pool": GENDER_NEUTRAL, "round": None}
-        records.append(
-            _record(
-                college_id,
-                2025,
-                "predicted_closing_rank",
-                r["predicted_closing_rank"],
-                f"{r['branch_name']} predicted closing rank (2025 forecast, quota {r['quota_used']}, category {student.category})",
-                **row,
-            )
-        )
-        records.append(_record(college_id, 2025, "band", r["band"], f"{r['branch_name']} eligibility band: {r['band']}", **row))
-        records.append(
-            _record(college_id, 2025, "admission_probability", probability, f"{r['branch_name']} calibrated admission probability", **row)
-        )
+        row = {
+            "program_id": r["program_id"],
+            "program": program,
+            "branch": r["branch_name"],
+            "category": student.category,
+            "quota": r["quota_used"],
+            "pool": GENDER_NEUTRAL,
+            "round": None,
+        }
+
+        def label(what, quota=None):
+            return _admission_label(what, r["branch_name"], program, student.category, None, quota)
+
+        records.append(_record(college_id, 2025, "predicted_closing_rank", r["predicted_closing_rank"], label("forecast closing rank", r["quota_used"]), **row))
+        records.append(_record(college_id, 2025, "band", r["band"], label("eligibility band"), **row))
+        records.append(_record(college_id, 2025, "admission_probability", probability, label("calibrated admission probability"), **row))
     return records
 
 
@@ -309,6 +368,7 @@ def _structured_records_for_college(
     history_row_cap=None,
     named=False,
     alongside_alternatives=False,
+    question_categories=frozenset(),
 ):
     """Real numbers for one college: predicted closing rank / band / P(admit)
     per eligible branch if a student profile is given, plus the latest actual
@@ -338,7 +398,8 @@ def _structured_records_for_college(
         )
     records = forecast
     if student is None or (named and not (alongside_alternatives and forecast)):
-        records = _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, max_rows=history_row_cap) + forecast
+        wanted = {student.category} if student else set()
+        records = _historical_closing_ranks(college_id, branch_filter, cs_adjacent_only, max_rows=history_row_cap, categories=wanted | question_categories) + forecast
 
     colleges, _programs, reference_metadata = model_state["reference_tables"]
     college_row = colleges[colleges["college_id"] == college_id]
@@ -408,8 +469,12 @@ def _semantic_records(question, model_state, exclude_college_ids, student, cs_ad
 
 def build_context_bundle(question, student_profile_dict, model_state):
     """Returns {"mode", "records", "college_ids", "college_aliases",
-    "student_inputs"}. college_aliases maps each college in the bundle to the
-    names a question or an answer may use for it.
+    "college_names", "focus", "student_inputs"}. college_aliases maps each
+    college in the bundle to the names a question or an answer may use for it;
+    college_names to its canonical name. focus is what the question itself named,
+    for a verification note to fall back on when an answer's sentence leaves it
+    out: the college, a branch a record of that college holds, and the category
+    (the one the question names, else the student's).
 
     mode is one of "structured" (a college was named), "semantic" (no
     college named, matched by free-text similarity), "mixed" (a college was
@@ -433,6 +498,7 @@ def build_context_bundle(question, student_profile_dict, model_state):
     matched_college = _match_college(question, lookup)
     matched_branch = _match_branch(question, lookup["branch_names"])
     cs_adjacent_only = matched_branch is None and _wants_cs_adjacent(question)
+    question_categories = _categories_in(question)
 
     wants_semantic = _wants_semantic(question)
     records = []
@@ -445,9 +511,10 @@ def build_context_bundle(question, student_profile_dict, model_state):
                 model_state,
                 branch_filter=matched_branch,
                 cs_adjacent_only=cs_adjacent_only,
-                history_row_cap=SHARED_HISTORY_ROW_CAP if wants_semantic or student is not None else None,
+                history_row_cap=ALTERNATIVES_HISTORY_ROW_CAP if wants_semantic else SHARED_HISTORY_ROW_CAP if student is not None else SOLO_HISTORY_ROW_CAP,
                 named=True,
                 alongside_alternatives=wants_semantic,
+                question_categories=question_categories,
             )
         )
         college_ids.append(matched_college)
@@ -474,10 +541,25 @@ def build_context_bundle(question, student_profile_dict, model_state):
         if cid in college_aliases:
             college_aliases[cid].append(alias)
 
+    canonical_names = dict(zip(lookup["colleges"]["college_id"], lookup["colleges"]["canonical_name"]))
+    # matched_branch is a substring filter ("Computer Science"); a note needs a
+    # branch a record of the named college holds. The shortest one that contains
+    # it, as _match_branch picks (a neighbour's own "Computer Science" must not win).
+    focus_branch = min(
+        (r["branch"] for r in records if r["college_id"] == matched_college and matched_branch and r.get("branch") and matched_branch.lower() in r["branch"].lower()),
+        key=lambda b: (len(b), b),
+        default=None,
+    )
+    # The category the question names wins over the profile's; with two named, the profile's.
+    focus_category = next(iter(question_categories)) if len(question_categories) == 1 else student.category if student else None
     return {
         "mode": mode,
         "records": records,
         "college_ids": college_ids,
         "college_aliases": college_aliases,
+        "college_names": {cid: canonical_names.get(cid, cid) for cid in college_ids},
+        # What the question itself named, for a verification note to fall back on
+        # when the answer's own sentence leaves the college, branch or category out.
+        "focus": {"college_id": matched_college, "branch": focus_branch, "category": focus_category},
         "student_inputs": student_inputs,
     }

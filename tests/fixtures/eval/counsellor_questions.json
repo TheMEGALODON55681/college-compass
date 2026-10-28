@@ -1,0 +1,1058 @@
+{
+  "version": 1,
+  "purpose": "Fixed evaluation set for the counsellor, written before any escalation code. Not edited after the first run.",
+  "classes": {
+    "verifiable": "The bundle holds the answer. Expected outcome: answer.",
+    "near_miss": "The asked figure is not held but a close one is. Expected outcome: decline_with_closest.",
+    "unverifiable": "Nothing close is held. Expected outcome: decline_nothing_close.",
+    "mixed": "Part of the question is held and part is not (or it names a college and asks for alternatives). Expected outcome: answer_and_decline, or answer.",
+    "placement": "Asks for placement, package, salary or similar. Expected outcome: placement_decline, the fixed refusal, no model call."
+  },
+  "expected_outcomes": {
+    "answer": "States the expected_figures with their attribution and no figure the bundle does not hold.",
+    "decline_with_closest": "Does not state the asked figure. May offer one figure from closest_figures, carrying all six fields. States no other figure.",
+    "decline_nothing_close": "States no figure for the ask and says plainly it is not held. closest_figures is empty.",
+    "answer_and_decline": "States the expected_figures and declines the part that is not held.",
+    "placement_decline": "Returns the fixed placement refusal. No figure of any kind."
+  },
+  "figure_fields": "college_id, branch, program, category, pool, year, round, kind, value. round null means the year has no round breakdown. A college-level figure (NIRF rank) carries college_id, kind and value only.",
+  "six_field_scope": "The six-field rule is applied to admission figures (closing rank, predicted rank, band, probability). A NIRF rank, a fee or a similarity score is college-level and has no branch, category, pool or round; it is never offered as a closest figure.",
+  "rejection": "A rejection is a first answer with at least one figure the validator does not support. It triggers one retry.",
+  "useful_after_rejection": {
+    "definition": "After a rejection, the final answer is useful when all four hold: (1) it states no figure the validator rejects; (2) it says in plain words which part it could not verify; (3) it either offers exactly one figure from closest_figures with college, branch, program, category, pool, year and round stated, or, when closest_figures is empty, says that nothing close could be verified; (4) it names one next step the student can take (name a college and branch, or give a rank and category).",
+    "scoring": "Deterministic. (1) and (3) are checked against the records by code. (2) and (4) are checked by fixed phrase lists committed with the harness. No model grades any answer."
+  },
+  "metrics": {
+    "unsupported_claim_rate": "Answers that state a figure the bundle does not hold, over answers.",
+    "attribution_error_rate": "Answers that state a held figure against a college, branch, program, category, pool, year or round it does not belong to, over answers that state a held figure.",
+    "useful_after_rejection_rate": "Rejected questions whose final answer is useful (above), over rejected questions."
+  },
+  "arms": {
+    "A": "Validator off. The model's first answer is returned as is. Evaluation only, never reachable from the API.",
+    "B": "Validator, one retry, strip. The behaviour before Phase 4.",
+    "C": "Validator, one retry, escalate. The Phase 4 behaviour."
+  },
+  "counts": {
+    "verifiable": 16,
+    "near_miss": 9,
+    "unverifiable": 7,
+    "mixed": 6,
+    "placement": 6
+  },
+  "questions": [
+    {
+      "id": "V01",
+      "class": "verifiable",
+      "question": "What is the closing rank for Computer Science at IIT Delhi?",
+      "student_profile": null,
+      "tags": [
+        "program_ambiguity",
+        "no_profile"
+      ],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "5-year Bachelor and Master of Technology (Dual Degree)",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 204
+        },
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 116
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "The 4-year B.Tech and the 5-year dual degree share the branch name. Both rows are expected, each told apart by program."
+    },
+    {
+      "id": "V02",
+      "class": "verifiable",
+      "question": "What is the closing rank for Computer Science at IIT Delhi?",
+      "student_profile": {
+        "jee_rank": 12480,
+        "category": "OPEN",
+        "home_state": "Delhi"
+      },
+      "tags": [
+        "program_ambiguity",
+        "out_of_reach"
+      ],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "5-year Bachelor and Master of Technology (Dual Degree)",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 204
+        },
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 116
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "The live regression from Phase 3b: the rank is outside every Computer Science row, the history must still be there."
+    },
+    {
+      "id": "V03",
+      "class": "verifiable",
+      "question": "What was the 2024 closing rank for Mechanical Engineering at IIT Bombay for OBC-NCL?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-bombay",
+          "branch": "Mechanical Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OBC-NCL",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 958
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "V04",
+      "class": "verifiable",
+      "question": "I want B. Tech. in Computer Science and Engineering at NIT Trichy. What was the closing rank?",
+      "student_profile": null,
+      "tags": [
+        "abbreviated_branch"
+      ],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "national-institute-of-technology-tiruchirappalli",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 1224
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "'B. Tech.' carries full stops inside the sentence. The college has no AI quota seats, so the figures are Other State."
+    },
+    {
+      "id": "V05",
+      "class": "verifiable",
+      "question": "What is the closing rank for Information Technology at Indian Institute of Information Technology Bhopal?",
+      "student_profile": null,
+      "tags": [
+        "college_name_holds_branch"
+      ],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-information-technology-bhopal",
+          "branch": "Information Technology",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 30065
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "The college name contains the branch name."
+    },
+    {
+      "id": "V06",
+      "class": "verifiable",
+      "question": "What is the EWS closing rank for Electrical Engineering at IIT Madras?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-madras",
+          "branch": "Electrical Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "EWS",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 178
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "V07",
+      "class": "verifiable",
+      "question": "What was the OPEN closing rank for Civil Engineering at NIT Warangal?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "national-institute-of-technology-warangal",
+          "branch": "Civil Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 25857
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "V08",
+      "class": "verifiable",
+      "question": "What is the SC closing rank for Computer Science at NIT Karnataka Surathkal?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "national-institute-of-technology-karnataka-surathkal",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "SC",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 324
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "V09",
+      "class": "verifiable",
+      "question": "What is the closing rank for Electronics and Communication Engineering at NIT Jaipur?",
+      "student_profile": {
+        "jee_rank": 8000,
+        "category": "OPEN",
+        "home_state": "Rajasthan"
+      },
+      "tags": [],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "malaviya-national-institute-of-technology-jaipur",
+          "branch": "Electronics and Communication Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 8437
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "V10",
+      "class": "verifiable",
+      "question": "Give me the OPEN closing rank for Computer Science at IIIT Allahabad.",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-information-technology-allahabad",
+          "branch": "Information Technology",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 5202
+        },
+        {
+          "college_id": "indian-institute-of-information-technology-allahabad",
+          "branch": "Information Technology-Business Informatics",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 5392
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "IIIT Allahabad offers Information Technology, so the Computer Science wording is a near match to a branch the college holds."
+    },
+    {
+      "id": "V11",
+      "class": "verifiable",
+      "question": "How competitive is CSE at IIT Kanpur?",
+      "student_profile": null,
+      "tags": [
+        "abbreviated_branch",
+        "no_profile"
+      ],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-kanpur",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 252
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "CSE is not read as a branch; the no-profile bundle holds every branch of the college."
+    },
+    {
+      "id": "V12",
+      "class": "verifiable",
+      "question": "What is the NIRF rank of IIT Madras?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-madras",
+          "kind": "nirf_rank",
+          "value": 1
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "V13",
+      "class": "verifiable",
+      "question": "What is the closing rank for Computer Science at IIT Roorkee, and what is its NIRF rank?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-roorkee",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 481
+        },
+        {
+          "college_id": "indian-institute-of-technology-roorkee",
+          "kind": "nirf_rank",
+          "value": 6
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "V14",
+      "class": "verifiable",
+      "question": "Can I get Computer Science at IIT Bombay with my rank?",
+      "student_profile": {
+        "jee_rank": 40000,
+        "category": "OPEN",
+        "home_state": "Maharashtra"
+      },
+      "tags": [
+        "out_of_reach"
+      ],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-bombay",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 68
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "A rank far outside the branch. The honest answer cites the closing rank and says the rank is out of reach; it states no probability the data does not hold."
+    },
+    {
+      "id": "V15",
+      "class": "verifiable",
+      "question": "What is the closing rank for Mechanical Engineering at NIT Trichy?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "national-institute-of-technology-tiruchirappalli",
+          "branch": "Mechanical Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 9305
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "V16",
+      "class": "verifiable",
+      "question": "What is the closing rank for B. Tech. (CSE) and M.Tech in CSE at IIT Patna?",
+      "student_profile": null,
+      "tags": [
+        "abbreviated_branch"
+      ],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-patna",
+          "branch": "B. Tech. (CSE) and M.Tech in CSE",
+          "program": "5-year B.Tech. + M.Tech./MS (Dual Degree)",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 4429
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "The branch name itself is an abbreviation with full stops."
+    },
+    {
+      "id": "N01",
+      "class": "near_miss",
+      "question": "What was the round 2 closing rank in 2024 for Computer Science at IIT Delhi?",
+      "student_profile": null,
+      "tags": [
+        "program_ambiguity"
+      ],
+      "expected_outcome": "decline_with_closest",
+      "expected_figures": [],
+      "closest_figures": [
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "5-year Bachelor and Master of Technology (Dual Degree)",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 204
+        },
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 116
+        }
+      ],
+      "must_not_state": [
+        "a round 2 figure"
+      ],
+      "note": "2024 has no round breakdown. The closest figure is the 2024 OPEN row, with its program."
+    },
+    {
+      "id": "N02",
+      "class": "near_miss",
+      "question": "What is the closing rank for Computer Science at IIT Delhi for Female-only seats?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_with_closest",
+      "expected_figures": [],
+      "closest_figures": [
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "5-year Bachelor and Master of Technology (Dual Degree)",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 204
+        },
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 116
+        }
+      ],
+      "must_not_state": [],
+      "note": "Female-only seats are outside the product. The closest figure is the Gender-Neutral row."
+    },
+    {
+      "id": "N03",
+      "class": "near_miss",
+      "question": "What was the 2025 closing rank for Computer Science at IIT Bombay?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_with_closest",
+      "expected_figures": [],
+      "closest_figures": [
+        {
+          "college_id": "indian-institute-of-technology-bombay",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 68
+        }
+      ],
+      "must_not_state": [],
+      "note": "The data ends in 2024; 2025 is a forecast, not a closing rank."
+    },
+    {
+      "id": "N04",
+      "class": "near_miss",
+      "question": "What was the closing rank for Computer Science at IIT Bombay in 2021?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_with_closest",
+      "expected_figures": [],
+      "closest_figures": [
+        {
+          "college_id": "indian-institute-of-technology-bombay",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 68
+        }
+      ],
+      "must_not_state": [],
+      "note": "The counsellor carries the latest year only. The closest figure is the 2024 row."
+    },
+    {
+      "id": "N05",
+      "class": "near_miss",
+      "question": "What was the Home State quota closing rank for Computer Science at NIT Trichy?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_with_closest",
+      "expected_figures": [],
+      "closest_figures": [
+        {
+          "college_id": "national-institute-of-technology-tiruchirappalli",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 1224
+        }
+      ],
+      "must_not_state": [],
+      "note": "The bundle holds Other State rows for this college."
+    },
+    {
+      "id": "N06",
+      "class": "near_miss",
+      "question": "What is the opening rank for Computer Science at IIT Bombay?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_with_closest",
+      "expected_figures": [],
+      "closest_figures": [
+        {
+          "college_id": "indian-institute-of-technology-bombay",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 68
+        }
+      ],
+      "must_not_state": [],
+      "note": "Opening ranks are not held. The closing rank is the nearest figure."
+    },
+    {
+      "id": "N07",
+      "class": "near_miss",
+      "question": "What was the third-round closing rank for Civil Engineering at IIT Roorkee in 2024?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_with_closest",
+      "expected_figures": [],
+      "closest_figures": [
+        {
+          "college_id": "indian-institute-of-technology-roorkee",
+          "branch": "Civil Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 6293
+        }
+      ],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "N08",
+      "class": "near_miss",
+      "question": "What percentile do I need for Computer Science at NIT Warangal?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_with_closest",
+      "expected_figures": [],
+      "closest_figures": [
+        {
+          "college_id": "national-institute-of-technology-warangal",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 2186
+        }
+      ],
+      "must_not_state": [],
+      "note": "Rank based, never percentile."
+    },
+    {
+      "id": "N09",
+      "class": "near_miss",
+      "question": "What is the Home State quota closing rank for Computer Science at IIT Delhi?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_with_closest",
+      "expected_figures": [],
+      "closest_figures": [
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "5-year Bachelor and Master of Technology (Dual Degree)",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 204
+        },
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 116
+        }
+      ],
+      "must_not_state": [],
+      "note": "IITs seat through the All India quota only."
+    },
+    {
+      "id": "U01",
+      "class": "unverifiable",
+      "question": "What is the closing rank for Computer Science at Delhi Technological University?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_nothing_close",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "Not a JoSAA institute."
+    },
+    {
+      "id": "U02",
+      "class": "unverifiable",
+      "question": "How many seats are there in Computer Science at NIT Warangal?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_nothing_close",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "Seat counts are not held."
+    },
+    {
+      "id": "U03",
+      "class": "unverifiable",
+      "question": "What is the closing rank for Quantum Engineering at NIT Warangal?",
+      "student_profile": null,
+      "tags": [
+        "wrong_branch_bundle"
+      ],
+      "expected_outcome": "decline_nothing_close",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "The college has no such branch. The branch matcher falls back to a different branch, so the bundle holds that branch's figures, which must not be passed off as Quantum Engineering."
+    },
+    {
+      "id": "U04",
+      "class": "unverifiable",
+      "question": "Who is the director of IIT Madras?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_nothing_close",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "General knowledge, outside JoSAA scope."
+    },
+    {
+      "id": "U05",
+      "class": "unverifiable",
+      "question": "What is the hostel fee at IIT Bombay?",
+      "student_profile": null,
+      "tags": [
+        "kind_confusion"
+      ],
+      "expected_outcome": "decline_nothing_close",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "The fee record is a tuition tier, not a hostel fee."
+    },
+    {
+      "id": "U06",
+      "class": "unverifiable",
+      "question": "What is the closing rank for Computer Science at IIIT Hyderabad?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "decline_nothing_close",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "Not in JoSAA."
+    },
+    {
+      "id": "U07",
+      "class": "unverifiable",
+      "question": "What is the closing rank for Computer Science?",
+      "student_profile": null,
+      "tags": [
+        "no_college",
+        "no_profile"
+      ],
+      "expected_outcome": "decline_nothing_close",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "No college named."
+    },
+    {
+      "id": "M01",
+      "class": "mixed",
+      "question": "What is the closing rank for Computer Science at IIT Delhi, and how many seats does it have?",
+      "student_profile": null,
+      "tags": [
+        "program_ambiguity"
+      ],
+      "expected_outcome": "answer_and_decline",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "5-year Bachelor and Master of Technology (Dual Degree)",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 204
+        },
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 116
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "Answer the rank, decline the seat count."
+    },
+    {
+      "id": "M02",
+      "class": "mixed",
+      "question": "What are the OPEN closing rank and the 2025 actual closing rank for Mechanical Engineering at IIT Bombay?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "answer_and_decline",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-bombay",
+          "branch": "Mechanical Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 1685
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "2024 is held, 2025 actual is not."
+    },
+    {
+      "id": "M03",
+      "class": "mixed",
+      "question": "Compare the closing ranks for Computer Science at IIT Delhi and IIT Bombay.",
+      "student_profile": null,
+      "tags": [
+        "two_colleges"
+      ],
+      "expected_outcome": "answer_and_decline",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-bombay",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 68
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "The matcher bundles one college (the longer alias, IIT Bombay). The other must be declined, not filled in from the first."
+    },
+    {
+      "id": "M04",
+      "class": "mixed",
+      "question": "Which colleges are similar to IIT Delhi, and what is IIT Delhi's NIRF rank?",
+      "student_profile": null,
+      "tags": [
+        "similar_to"
+      ],
+      "expected_outcome": "answer",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-delhi",
+          "kind": "nirf_rank",
+          "value": 2
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "Named college plus alternatives."
+    },
+    {
+      "id": "M05",
+      "class": "mixed",
+      "question": "What is the closing rank for Computer Science at IIT Kanpur, and what are the hostel fees?",
+      "student_profile": null,
+      "tags": [
+        "kind_confusion"
+      ],
+      "expected_outcome": "answer_and_decline",
+      "expected_figures": [
+        {
+          "college_id": "indian-institute-of-technology-kanpur",
+          "branch": "Computer Science and Engineering",
+          "program": "4-year Bachelor of Technology",
+          "category": "OPEN",
+          "pool": "Gender-Neutral",
+          "year": 2024,
+          "round": null,
+          "kind": "actual_closing_rank",
+          "value": 252
+        }
+      ],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "Answer the rank, decline the hostel fee."
+    },
+    {
+      "id": "M06",
+      "class": "mixed",
+      "question": "Which IITs are best for computer science and what are their fees?",
+      "student_profile": {
+        "jee_rank": 12480,
+        "category": "OPEN",
+        "home_state": "Delhi"
+      },
+      "tags": [
+        "semantic"
+      ],
+      "expected_outcome": "answer",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": "Semantic route. Every figure stated must come from the bundle; the set cannot list them in advance."
+    },
+    {
+      "id": "P01",
+      "class": "placement",
+      "question": "What is the average placement at IIT Bombay?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "placement_decline",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "P02",
+      "class": "placement",
+      "question": "What is the highest package for Computer Science at NIT Trichy?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "placement_decline",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "P03",
+      "class": "placement",
+      "question": "What salary do IIT Delhi graduates get?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "placement_decline",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "P04",
+      "class": "placement",
+      "question": "Which college has the best CTC for CSE?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "placement_decline",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "P05",
+      "class": "placement",
+      "question": "What is the closing rank for Computer Science at IIT Delhi and the average package?",
+      "student_profile": null,
+      "tags": [
+        "mixed_with_rank"
+      ],
+      "expected_outcome": "placement_decline",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    },
+    {
+      "id": "P06",
+      "class": "placement",
+      "question": "How many job offers does NIT Warangal get, and what is the internship pay?",
+      "student_profile": null,
+      "tags": [],
+      "expected_outcome": "placement_decline",
+      "expected_figures": [],
+      "closest_figures": [],
+      "must_not_state": [],
+      "note": ""
+    }
+  ]
+}
