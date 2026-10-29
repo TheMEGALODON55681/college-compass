@@ -222,7 +222,8 @@ Technology, Nirjuli-791109 (Itanagar),Arunachal Pradesh". If the model writes
 the full name, 791109 is in no record, so the check flags it, the answer goes
 back for a retry it did not need, and a retry that keeps the name strips the
 digits out of it. A fix would skip numbers that sit inside a college name or
-alias. Not fixed: it is outside Phase 3 and touches one college.
+alias. Not fixed: it is outside Phase 3 and touches one college. No question in
+the Phase 4 evaluation set names it, so the Phase 4b scores do not include it.
 
 ## Strip-and-retry can mangle a legitimate number that shares digits with an ungrounded one (closed)
 
@@ -459,16 +460,79 @@ Open, logged on 2026-10-28, none fixed in Phase 4a.
   429 and the counsellor answers with the refusal message and no note. Phase 4b
   has to pace its calls, and arm C will count refusals.
 - When a retry is refused the response sets `blocked_ungrounded_figure` and the
-  refusal message; the current frontend then adds "a figure was left out". The
-  Phase 4b note should key off `verification`, not that flag.
+  refusal message. Closed in Phase 4b: the frontend note keys off
+  `verification`, and the footnote that read that flag is gone.
 - The note's wording is fixed: a claim about a NIRF rank or a fee gets "nothing
   close to it is on record" although the college's NIRF rank and fee are held,
-  and two removed figures still read "a figure".
+  and two removed figures still read "a figure". The same sentence appears when
+  the rejected claim names no branch, because the closest-figure search needs
+  one. The sentence is false in the committed Phase 4a copy and stays open until
+  the developer approves new wording.
 - "I'd also like the closing rank for CSE at IIT Delhi" counts as a request for
   similar colleges ("like" after another word), so the encoder loads for a
   one-college question. Only "I'd like" and "I would like" are exempt.
 - Next to a request for alternatives, IIT Patna with OBC-NCL (64 rows) or SC (62)
   has more than the 60 rows the cap allows and loses the last branches' rows.
+
+## Verification note and evaluation limits (Phase 4b)
+
+Open, logged 2026-10-29.
+
+What a student sees:
+
+- The note appears only when the backend returns `verification`. When no note
+  builds, the answer keeps the inline "[figure not available in the system's
+  data]" and nothing explains it. Phase 4b removed the old footnote ("A figure
+  in this answer could not be verified"): a refused retry also sets
+  `blocked_ungrounded_figure`, so the footnote appeared under a refusal that
+  holds no figure.
+- The note writes AI, HS and OS in words. Any other quota code (AP, GO, JK, LA)
+  prints as the code.
+- A bubble takes 75 percent of the message column, so at 375 px the note is 245
+  px wide and runs twelve lines in its longest state. Every answer shares that
+  width, so Phase 4b left it.
+- The bubble's 0.35 s entrance is over the 300 ms ceiling in Design.md. The
+  scroll to the newest message is smooth. Neither checks
+  `prefers-reduced-motion`. The send button has no accessible name. All three
+  pre-date 4b and belong to Phase 6.
+
+What the evaluation measures:
+
+- The production validator also scores every arm. Arms B and C strip whatever
+  it flags, so they read 0 unsupported claims and 0 attribution errors by
+  construction. Only arm A shows how often the model states a figure the
+  records do not hold.
+- The validator does not read a round written as a word ("third round"). A
+  wrong round in that form passes, so attribution errors are undercounted in
+  every arm.
+- A class holds 6 to 16 questions, so one question moves a rate by 6 to 17
+  points. The README gives counts (k of n) beside the percentages. One run of
+  one model on one day is one sample, and a second run can differ.
+- "Useful after rejection" follows the question file. A note's offered figure is
+  judged only against `closest_figures`, which is empty for every verifiable and
+  mixed question, so for those classes only a "nothing close" note counts.
+- Every arm shares the first completion and arms B and C share the retry. The
+  arms differ in what the code does with an answer, not in what the model
+  writes.
+
+What the Phase 4b run found:
+
+- The validator reads a category only as the API spells it, so "OBC‑NCL" written
+  with a non-breaking hyphen (U+2011) is not a category. In question N03 the
+  model listed "OPEN 68, EWS 23, OBC‑NCL 50" for IIT Bombay Computer Science and
+  Engineering. The 50 is a real OBC-NCL rank, and the validator flagged it as
+  attached to the wrong category. Replacing the hyphen clears the flag. The
+  answer went back for a retry it did not need.
+- Of the six first answers the validator rejected in 37 questions, two held a
+  correct figure it could not read (N03 above, and V09 below), and the other four
+  held a year or an example number written while declining. The run recorded no
+  invented closing rank. The README section "Measuring the counsellor" has the
+  detail.
+- Not fixed in 4b. The validator is the instrument the evaluation scored with, and
+  a change to it moves every number. A fix is one normalisation step ahead of the
+  validator (U+2011 to a hyphen, U+202F between digits removed). Because the run
+  file stores every completion, `--rescore` then measures the change on all 44
+  questions with no provider call.
 
 ## Four colleges with only 2016 or 2017 data have an empty counsellor history
 
@@ -497,6 +561,12 @@ own and the check blocks a real rank. No fabricated figure gets through; it
 errs toward blocking. Not fixed: it sits outside the four Phase 2 bugs. A fix
 would extend `NUMBER_PATTERN` to join digit groups separated by a space or a
 narrow no-break space, and test it against the grounded set.
+
+Seen again in the Phase 4b run. Question V09 (the OPEN closing rank for
+Electronics and Communication Engineering at NIT Jaipur) drew a correct first
+answer with "8 437" and three other ranks written with a narrow no-break space.
+The validator flagged all eight fragments, the retry returned plain digits, and
+the answer passed. One of 37 first answers cost a retry this way.
 
 ## 2023 and 2024 cutoffs have no round breakdown, and cannot be backfilled from any source already in the pipeline
 

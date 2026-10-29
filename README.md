@@ -331,7 +331,156 @@ it and the response carries a `verification` note. The note gives the closest
 figure on record, chosen by fixed rules, with its college, branch, program,
 category, seat pool, quota, year and round, or says plainly that nothing close is
 on record. It states a figure only as its own record reads, so it never pairs a
-value with the wrong college, branch, program, category, year or round.
+value with the wrong college, branch, program, category, year or round. The
+counsellor screen shows the note in a tinted panel under the answer, and the
+section [Measuring the counsellor](#measuring-the-counsellor) compares the three
+behaviours on a fixed question set.
+
+## Measuring the counsellor
+
+The counsellor answered a fixed set of 44 questions
+(`tests/fixtures/eval/counsellor_questions.json`, written before the escalation
+code and not edited since) on 2026-10-29, with the real model:
+`openai/gpt-oss-120b` on Groq's free tier. Six questions ask for placement or
+salary data and get the fixed refusal with no model call. The other 38 ask for a
+closing rank: 16 the system holds, 9 for a year or branch it lacks while a close
+figure exists, 7 where nothing close exists, and 6 that mix a held figure with a
+missing one. One of the 38, V10, no version can answer (see below), so the
+tables count 37.
+
+Three versions of the counsellor answered each question:
+
+- **A, no validator.** The model's first answer, as written.
+- **B, strip only.** The counsellor before Phase 4. The validator checks the
+  answer, the model gets one stricter retry, and a figure that is still
+  unsupported becomes "[figure not available in the system's data]". The student
+  sees no explanation.
+- **C, strip and note.** The counsellor as it runs now: B plus the verification
+  note, which says what was removed and offers the closest figure on record or
+  says that nothing close is on record.
+
+The versions share their model calls. The first answer to each question is
+fetched once and all three read it, and B and C share the retry, so the versions
+differ only in what the code does with the same text. The run made 44 calls (38
+first answers, 6 retries), 60 seconds apart to stay inside the free tier. Every
+check is code. No model grades an answer.
+
+Unsupported claim rate: answers that state a figure no record holds.
+
+| Class (questions) | A | B | C |
+| --- | --- | --- | --- |
+| Verifiable (15) | 1/15 | 0/15 | 0/15 |
+| Near miss (9) | 2/9 | 0/9 | 0/9 |
+| Unverifiable (7) | 2/7 | 0/7 | 0/7 |
+| Mixed (6) | 1/6 | 0/6 | 0/6 |
+| **Overall (37)** | **6/37 (16%)** | **0/37** | **0/37** |
+
+Attribution error rate: answers that state a held figure against a college,
+branch, program, category, seat pool, year or round it does not belong to, out of
+the answers that state a held figure.
+
+| Class | A | B | C |
+| --- | --- | --- | --- |
+| Verifiable | 0/15 | 0/15 | 0/15 |
+| Near miss | 1/3 | 0/3 | 0/3 |
+| Unverifiable | 0/1 | 0/3 | 0/3 |
+| Mixed | 0/5 | 0/5 | 0/5 |
+| **Overall** | **1/24 (4%)** | **0/26** | **0/26** |
+
+Useful after rejection: of the questions whose first answer the validator
+rejected, the final answer says which part it could not verify, offers exactly one
+figure from the close list (or says nothing close exists) with all six fields,
+names a next step, and states no other figure.
+
+| Class | A | B | C |
+| --- | --- | --- | --- |
+| Verifiable | 0/1 | 0/1 | 0/1 |
+| Near miss | 0/2 | 0/2 | 0/2 |
+| Unverifiable | 0/2 | 0/2 | 0/2 |
+| Mixed | 0/1 | 0/1 | 0/1 |
+| **Overall** | **0/6** | **0/6** | **0/6** |
+
+What each version produced, out of 37 questions:
+
+| Outcome | A | B | C |
+| --- | --- | --- | --- |
+| Answered cleanly on the first call | 31 | 31 | 31 |
+| Rejected, and the retry fixed it | n/a | 3 | 3 |
+| Rejected, figure stripped, no note | n/a | 3 | n/a |
+| Rejected, figure stripped, note with the closest figure | n/a | n/a | 3 |
+| Rejected, figure stripped, note that nothing is close | n/a | n/a | 0 |
+| Rejected, nothing done (A has no validator) | 6 | n/a | n/a |
+| Refused by the provider | 0 | 0 | 0 |
+
+**What the six rejected answers held.** None is an invented closing rank. Three
+name the year the student asked about while saying the records lack it (N03 and
+M02 write "2025", N04 writes "2021"). One suggests an example rank (U03, "45
+000"). One writes a year inside an example question (U06, "2024"). One is a
+correct answer the validator could not read (V09: the model separated the digits
+of "8437" with a narrow no-break space). N03 also holds a correct figure, OBC-NCL
+50, that the validator flagged because the model wrote the category with a
+non-breaking hyphen. Replacing that hyphen clears the flag, and joining V09's
+digit groups clears all but one hyphenated figure. In two of the six rejections
+the validator turned down a correct figure. [KNOWN_ISSUES.md](KNOWN_ISSUES.md)
+lists both.
+
+**What the numbers say about the note.** The retry fixed three of the six
+rejected answers (U03, U06, V09), so those students saw no note. In the other
+three (N03, N04, M02) the year survived the retry. B stripped it and C added the
+note, each time with a figure built from a real record: IIT Bombay Computer
+Science and Engineering, OPEN, 68 (N03, N04) and IIT Bombay Mechanical
+Engineering, OPEN, 1685 (M02). Useful after rejection reads 0 of 6 in every
+version. A recovered answer cannot count, because it carries no note. The three
+notes failed the definition as well. The N03 and N04 answers listed other
+correct 2024 ranks beside the note's figure, so they stated more than one
+figure. The question file's close list for M02 is empty, because the OPEN rank is
+the expected answer there, so only a "nothing close" note would count. The note
+did not move the one metric it was built to move. It also did not make any
+metric worse than A or B.
+
+The note has costs these metrics do not count. It adds text to the answer (twelve
+lines on a 375 px screen). Its "nothing close" sentence is false when the removed
+claim is a NIRF rank or a fee, or names no branch; no question in this run
+triggered that case. It adds no provider call, because B and C share the retry.
+
+**What this run cannot show.**
+
+- The sample is small: 37 questions, one model, one day, six rejections. A class
+  holds 6 to 16 questions, so one question moves a rate by 6 to 17 points. A
+  second run can differ.
+- The model rarely stated a bad figure: 31 of 37 first answers passed the
+  validator unchanged. A set built to provoke invented figures would test the
+  note harder.
+- B and C read 0 on the first two metrics by construction. The production
+  validator is also the scorer, and B and C ship only what it passes. Only A shows
+  what the model writes unprompted, and a figure the validator wrongly accepts is
+  invisible here.
+- The validator does not read a round written as a word ("third round"), so
+  attribution errors involving a round go uncounted in every version.
+- The close list is empty for every verifiable and mixed question, so for those
+  classes only a "nothing close" note can count as useful.
+- The phrase lists for "says what it could not verify" and "names a next step"
+  come from the note's own wording. They measure whether an answer carries the
+  note's content, not whether it helped a student.
+- No metric checks that a verifiable question received its expected figure. A
+  decline reads as clean.
+
+**V10, reported apart.** "Give me the OPEN closing rank for Computer Science at
+IIIT Allahabad." All three versions returned the same decline. The retriever
+takes "Computer Science" for a branch at IIIT Lucknow and filters Allahabad's
+history to nothing, so the model never saw a rank for that college. The question
+set stays unedited, so V10 sits outside its class and the totals.
+
+To repeat the run, set the provider variables and run these three commands from
+the repository root. The first takes about 45 minutes, and the third writes
+`tests/fixtures/eval/counsellor_results.json`.
+
+    python -I models/eval_counsellor.py --run eval_run.jsonl
+    python -I models/eval_counsellor.py --rescore eval_run.jsonl
+    python -I models/eval_counsellor.py --report eval_run.jsonl
+
+`--rescore` scores the recorded answers again with the current code and makes no
+provider call, so a change to the validator can be measured without a new run.
 
 ## Scope and limitations
 

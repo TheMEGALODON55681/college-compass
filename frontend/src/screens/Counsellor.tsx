@@ -5,14 +5,14 @@ import { C, fBody, fDisplay, fMono, shadow } from "../lib/tokens";
 import { Eyebrow } from "../components/Eyebrow";
 import { InlineError } from "../components/states/InlineError";
 import { askCounsellor } from "../lib/api";
+import { VerificationNote } from "../components/VerificationNote";
 import { loadSession } from "../lib/session";
-import { collegeNameFromId } from "../lib/adapters";
+import { toCounsellorReply } from "../lib/adapters";
+import type { CounsellorReply } from "../lib/types";
 
-interface ChatMsg {
+interface ChatMsg extends Partial<CounsellorReply> {
   role: "student" | "counsellor" | "error";
   text: string;
-  sources?: string[];
-  blocked?: boolean;
 }
 
 // Named colleges and topics chosen so each one actually hits the grounded
@@ -23,12 +23,6 @@ const STARTERS = [
   "Explain the JoSAA rounds.",
   "How does home-state quota work at NITs?",
 ];
-
-// The LLM sometimes answers in markdown; this is a plain-text bubble, not a
-// markdown renderer, so strip the bold marker rather than show it literally.
-function stripBoldMarkers(text: string): string {
-  return text.replace(/\*\*(.+?)\*\*/g, "$1");
-}
 
 export function Counsellor() {
   const session = loadSession();
@@ -45,8 +39,7 @@ export function Counsellor() {
     setTyping(true);
     try {
       const res = await askCounsellor({ question, student_profile: session?.request ?? null });
-      const sources = [...new Set(res.source_college_ids)].map((id) => collegeNameFromId(id, session?.colleges));
-      setMessages((prev) => [...prev, { role: "counsellor", text: stripBoldMarkers(res.answer), sources, blocked: res.blocked_ungrounded_figure }]);
+      setMessages((prev) => [...prev, { role: "counsellor", ...toCounsellorReply(res, session?.colleges) }]);
     } catch (err) {
       setMessages((prev) => [...prev, { role: "error", text: err instanceof Error ? err.message : "Something went wrong. Try asking again." }]);
     } finally {
@@ -75,7 +68,8 @@ export function Counsellor() {
 
       {/* Messages */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
-        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+        {/* Live region: exists before an answer, and its note, is added to it. */}
+        <div aria-live="polite" aria-relevant="additions" style={{ maxWidth: 720, margin: "0 auto" }}>
           {messages.length === 0 && (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <div style={{
@@ -139,11 +133,7 @@ export function Counsellor() {
                   boxShadow: m.role === "counsellor" ? shadow.rest : "none",
                 }}>
                   <p style={{ fontFamily: fBody, fontSize: 15, lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>{m.text}</p>
-                  {m.blocked && (
-                    <p style={{ fontFamily: fBody, fontSize: 12, color: C.ink500, margin: "10px 0 0", lineHeight: 1.5 }}>
-                      A figure in this answer could not be verified against real data, so it was left out.
-                    </p>
-                  )}
+                  <VerificationNote verification={m.verification} />
                   {m.sources && m.sources.length > 0 && (
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
                       {m.sources.map(s => (

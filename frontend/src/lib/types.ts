@@ -1,4 +1,10 @@
-import type { RoundProjectionPoint, Trend } from "./api";
+import type { RoundProjectionPoint, Trend, Verification } from "./api";
+
+export interface CounsellorReply {
+  text: string;
+  sources: string[];
+  verification: Verification | null;
+}
 
 export type Tier = "likely" | "fair" | "reach";
 

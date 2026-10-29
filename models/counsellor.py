@@ -528,7 +528,7 @@ def _escalation(answer_text, spans, bundle):
     return {"outcome": "escalate", "unverified_count": len(spans), "closest": figure, "message": message}
 
 
-def generate_answer(question, bundle):
+def generate_answer(question, bundle, *, validate=True, escalate=True):
     """Calls the configured LLM, then enforces numeric grounding in code
     before returning - see the module docstring. Never raises for a
     reachability problem; returns a clean error answer instead of ever
@@ -536,6 +536,11 @@ def generate_answer(question, bundle):
     PROVIDER_REJECTED_ANSWER). Returns a dict: answer, source_college_ids,
     blocked_ungrounded_figure, error, and `verification` (see _escalation)
     when a figure was stripped but the answer could still be given.
+
+    `validate` and `escalate` exist only for models/eval_counsellor.py, which
+    compares the three behaviours: validate=False returns the first answer as
+    it came (arm A), escalate=False strips without a note (arm B). The API
+    never passes either (tests/test_eval_counsellor.py pins it).
     """
     if bundle["mode"] == "out_of_scope_placement":
         return {"answer": PLACEMENT_DECLINE_ANSWER, "source_college_ids": [], "blocked_ungrounded_figure": False, "error": None}
@@ -564,7 +569,7 @@ def generate_answer(question, bundle):
         }
 
     first_text = answer_text
-    ungrounded_spans = _ungrounded_spans(first_text, bundle)
+    ungrounded_spans = _ungrounded_spans(first_text, bundle) if validate else []
     ungrounded = [n for _, _, n in ungrounded_spans]
     blocked = False
     verification = None
@@ -591,7 +596,7 @@ def generate_answer(question, bundle):
             else:
                 print(f"[counsellor] ungrounded figure(s) still present after retry: {[n for _, _, n in retry_spans]}, stripping")
                 answer_text = _strip_ungrounded(retry_text, retry_spans)
-                verification = _safe_escalation(retry_text, retry_spans, bundle)
+                verification = _safe_escalation(retry_text, retry_spans, bundle) if escalate else None
                 blocked = True
         except Exception as exc:
             print(f"[counsellor] retry call failed: {type(exc).__name__}, status {getattr(exc, 'status_code', None)}")
@@ -605,7 +610,7 @@ def generate_answer(question, bundle):
                     "error": str(exc),
                 }
             answer_text = _strip_ungrounded(first_text, ungrounded_spans)
-            verification = _safe_escalation(first_text, ungrounded_spans, bundle)
+            verification = _safe_escalation(first_text, ungrounded_spans, bundle) if escalate else None
             blocked = True
 
     result = {"answer": answer_text, "source_college_ids": bundle["college_ids"], "blocked_ungrounded_figure": blocked, "error": None}

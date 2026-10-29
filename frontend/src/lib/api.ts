@@ -80,10 +80,39 @@ export interface ChatRequest {
   student_profile?: RecommendRequest | null;
 }
 
+// The one admission figure the records hold nearest to a claim the counsellor
+// could not verify, with the fields it is attributed to (models/counsellor.py
+// _escalation). quota is the JoSAA code (AI, HS, OS); round is null when the
+// year has no round breakdown.
+export interface VerificationFigure {
+  college_id: string;
+  college_name: string;
+  branch: string;
+  program: string;
+  category: string;
+  pool: string;
+  quota: string;
+  year: number;
+  round: number | null;
+  kind: "actual_closing_rank" | "predicted_closing_rank";
+  value: number;
+}
+
+export interface Verification {
+  outcome: "escalate";
+  unverified_count: number;
+  closest: VerificationFigure | null;
+  message: string;
+}
+
 export interface ChatResponse {
   answer: string;
   source_college_ids: string[];
   blocked_ungrounded_figure: boolean;
+  // Additive and optional (docs/Rules.md section 8): present only when a
+  // figure was stripped and a note could be built. A refused retry sets
+  // blocked_ungrounded_figure with no verification, so the note keys off this.
+  verification?: Verification | null;
 }
 
 export interface SimilarCollege {

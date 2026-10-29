@@ -341,3 +341,18 @@ def test_no_note_ever_names_a_figure_without_its_attribution():
         for key in ("college_id", "college_name", "branch", "program", "category", "pool", "quota", "year", "kind", "value"):
             assert closest[key] not in (None, ""), key
         assert "round" in closest
+
+
+def test_the_frontend_note_copy_is_the_backend_template():
+    """frontend/src/lib/verificationCopy.ts spells the note's two fixed sentences
+    itself; they must stay the backend's, word for word.
+    """
+    ts = (Path(__file__).resolve().parent.parent / "frontend" / "src" / "lib" / "verificationCopy.ts").read_text(encoding="utf-8")
+    lead = re.search(r'NOTE_LEAD = "([^"]+)"', ts).group(1)
+    next_step = re.search(r'NOTE_NEXT_STEP = "([^"]+)"', ts).group(1)
+    template = counsellor.ESCALATION_WITH_FIGURE
+
+    assert template.startswith(lead + " {college_name}") and template.endswith(" " + next_step)
+    quota = dict(re.findall(r'\["(\w+)", "([^"]+)"\]', ts))
+    kinds = dict(re.findall(r'(\w+_closing_rank): "([^"]+)"', ts))
+    assert quota == counsellor.QUOTA_NAMES and kinds == counsellor.KIND_PHRASES

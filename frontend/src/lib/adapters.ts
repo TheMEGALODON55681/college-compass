@@ -4,8 +4,8 @@
 // only, since the backend has no why field. See .planning/Design.md and
 // .planning/phase-0-mapping.md.
 
-import type { Band, BranchCategoryPref, CollegeResult, OwnershipPref, RecommendRequest, RecommendResponse } from "./api";
-import type { College, Student, Tier } from "./types";
+import type { Band, BranchCategoryPref, ChatResponse, CollegeResult, OwnershipPref, RecommendRequest, RecommendResponse } from "./api";
+import type { College, CounsellorReply, Student, Tier } from "./types";
 
 const BAND_TO_TIER: Record<Band, Tier> = { safe: "likely", moderate: "fair", dream: "reach" };
 
@@ -202,6 +202,22 @@ export function collegeNameFromId(collegeId: string, colleges: College[] = []): 
   const match = colleges.find((c) => c.collegeId === collegeId);
   if (match) return match.name;
   return collegeId.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+}
+
+// The LLM sometimes answers in markdown; the chat bubble is plain text, not a
+// markdown renderer, so strip the bold marker rather than show it literally.
+function stripBoldMarkers(text: string): string {
+  return text.replace(/\*\*(.+?)\*\*/g, "$1");
+}
+
+// /chat response -> what the counsellor screen shows. verification is
+// additive: an older or failing backend simply has none.
+export function toCounsellorReply(response: ChatResponse, colleges: College[] = []): CounsellorReply {
+  return {
+    text: stripBoldMarkers(response.answer),
+    sources: [...new Set(response.source_college_ids)].map((id) => collegeNameFromId(id, colleges)),
+    verification: response.verification ?? null,
+  };
 }
 
 export function adaptCollegeResults(response: RecommendResponse, form: RankCardForm, studentRank: number): College[] {

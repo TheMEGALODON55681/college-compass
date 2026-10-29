@@ -1,0 +1,1506 @@
+{
+ "questions_sha256": [
+  "a649f169054e941f6ef5d055527f097d946b8a248c0fb72338977dc6ce0f1e6f",
+  "b7847f275f3ec227022a5f90ac3fc61e82e158fb7c6eb9e870099722cc162e67"
+ ],
+ "questions_run": 44,
+ "provider_calls": 44,
+ "first_answers_rejected": 6,
+ "tables": {
+  "A": {
+   "verifiable": {
+    "questions": 15,
+    "answered": 15,
+    "refused": 0,
+    "unsupported": [
+     1,
+     15
+    ],
+    "attribution_error": [
+     0,
+     15
+    ],
+    "rejected": 1,
+    "useful": [
+     0,
+     1
+    ],
+    "outcomes": {
+     "clean": 14,
+     "unvalidated": 1
+    }
+   },
+   "near_miss": {
+    "questions": 9,
+    "answered": 9,
+    "refused": 0,
+    "unsupported": [
+     2,
+     9
+    ],
+    "attribution_error": [
+     1,
+     3
+    ],
+    "rejected": 2,
+    "useful": [
+     0,
+     2
+    ],
+    "outcomes": {
+     "clean": 7,
+     "unvalidated": 2
+    }
+   },
+   "unverifiable": {
+    "questions": 7,
+    "answered": 7,
+    "refused": 0,
+    "unsupported": [
+     2,
+     7
+    ],
+    "attribution_error": [
+     0,
+     1
+    ],
+    "rejected": 2,
+    "useful": [
+     0,
+     2
+    ],
+    "outcomes": {
+     "clean": 5,
+     "unvalidated": 2
+    }
+   },
+   "mixed": {
+    "questions": 6,
+    "answered": 6,
+    "refused": 0,
+    "unsupported": [
+     1,
+     6
+    ],
+    "attribution_error": [
+     0,
+     5
+    ],
+    "rejected": 1,
+    "useful": [
+     0,
+     1
+    ],
+    "outcomes": {
+     "clean": 5,
+     "unvalidated": 1
+    }
+   },
+   "placement": {
+    "questions": 6,
+    "answered": 6,
+    "refused": 0,
+    "unsupported": [
+     0,
+     6
+    ],
+    "attribution_error": [
+     0,
+     0
+    ],
+    "rejected": 0,
+    "useful": [
+     0,
+     0
+    ],
+    "outcomes": {
+     "placement_decline": 6
+    }
+   },
+   "overall": {
+    "questions": 37,
+    "answered": 37,
+    "refused": 0,
+    "unsupported": [
+     6,
+     37
+    ],
+    "attribution_error": [
+     1,
+     24
+    ],
+    "rejected": 6,
+    "useful": [
+     0,
+     6
+    ],
+    "outcomes": {
+     "clean": 31,
+     "unvalidated": 6
+    }
+   }
+  },
+  "B": {
+   "verifiable": {
+    "questions": 15,
+    "answered": 15,
+    "refused": 0,
+    "unsupported": [
+     0,
+     15
+    ],
+    "attribution_error": [
+     0,
+     15
+    ],
+    "rejected": 1,
+    "useful": [
+     0,
+     1
+    ],
+    "outcomes": {
+     "clean": 14,
+     "recovered": 1
+    }
+   },
+   "near_miss": {
+    "questions": 9,
+    "answered": 9,
+    "refused": 0,
+    "unsupported": [
+     0,
+     9
+    ],
+    "attribution_error": [
+     0,
+     3
+    ],
+    "rejected": 2,
+    "useful": [
+     0,
+     2
+    ],
+    "outcomes": {
+     "clean": 7,
+     "stripped": 2
+    }
+   },
+   "unverifiable": {
+    "questions": 7,
+    "answered": 7,
+    "refused": 0,
+    "unsupported": [
+     0,
+     7
+    ],
+    "attribution_error": [
+     0,
+     3
+    ],
+    "rejected": 2,
+    "useful": [
+     0,
+     2
+    ],
+    "outcomes": {
+     "clean": 5,
+     "recovered": 2
+    }
+   },
+   "mixed": {
+    "questions": 6,
+    "answered": 6,
+    "refused": 0,
+    "unsupported": [
+     0,
+     6
+    ],
+    "attribution_error": [
+     0,
+     5
+    ],
+    "rejected": 1,
+    "useful": [
+     0,
+     1
+    ],
+    "outcomes": {
+     "clean": 5,
+     "stripped": 1
+    }
+   },
+   "placement": {
+    "questions": 6,
+    "answered": 6,
+    "refused": 0,
+    "unsupported": [
+     0,
+     6
+    ],
+    "attribution_error": [
+     0,
+     0
+    ],
+    "rejected": 0,
+    "useful": [
+     0,
+     0
+    ],
+    "outcomes": {
+     "placement_decline": 6
+    }
+   },
+   "overall": {
+    "questions": 37,
+    "answered": 37,
+    "refused": 0,
+    "unsupported": [
+     0,
+     37
+    ],
+    "attribution_error": [
+     0,
+     26
+    ],
+    "rejected": 6,
+    "useful": [
+     0,
+     6
+    ],
+    "outcomes": {
+     "clean": 31,
+     "recovered": 3,
+     "stripped": 3
+    }
+   }
+  },
+  "C": {
+   "verifiable": {
+    "questions": 15,
+    "answered": 15,
+    "refused": 0,
+    "unsupported": [
+     0,
+     15
+    ],
+    "attribution_error": [
+     0,
+     15
+    ],
+    "rejected": 1,
+    "useful": [
+     0,
+     1
+    ],
+    "outcomes": {
+     "clean": 14,
+     "recovered": 1
+    }
+   },
+   "near_miss": {
+    "questions": 9,
+    "answered": 9,
+    "refused": 0,
+    "unsupported": [
+     0,
+     9
+    ],
+    "attribution_error": [
+     0,
+     3
+    ],
+    "rejected": 2,
+    "useful": [
+     0,
+     2
+    ],
+    "outcomes": {
+     "clean": 7,
+     "closest": 2
+    }
+   },
+   "unverifiable": {
+    "questions": 7,
+    "answered": 7,
+    "refused": 0,
+    "unsupported": [
+     0,
+     7
+    ],
+    "attribution_error": [
+     0,
+     3
+    ],
+    "rejected": 2,
+    "useful": [
+     0,
+     2
+    ],
+    "outcomes": {
+     "clean": 5,
+     "recovered": 2
+    }
+   },
+   "mixed": {
+    "questions": 6,
+    "answered": 6,
+    "refused": 0,
+    "unsupported": [
+     0,
+     6
+    ],
+    "attribution_error": [
+     0,
+     5
+    ],
+    "rejected": 1,
+    "useful": [
+     0,
+     1
+    ],
+    "outcomes": {
+     "clean": 5,
+     "closest": 1
+    }
+   },
+   "placement": {
+    "questions": 6,
+    "answered": 6,
+    "refused": 0,
+    "unsupported": [
+     0,
+     6
+    ],
+    "attribution_error": [
+     0,
+     0
+    ],
+    "rejected": 0,
+    "useful": [
+     0,
+     0
+    ],
+    "outcomes": {
+     "placement_decline": 6
+    }
+   },
+   "overall": {
+    "questions": 37,
+    "answered": 37,
+    "refused": 0,
+    "unsupported": [
+     0,
+     37
+    ],
+    "attribution_error": [
+     0,
+     26
+    ],
+    "rejected": 6,
+    "useful": [
+     0,
+     6
+    ],
+    "outcomes": {
+     "clean": 31,
+     "closest": 3,
+     "recovered": 3
+    }
+   }
+  }
+ },
+ "reported_apart": {
+  "V10": {
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  }
+ },
+ "per_question": {
+  "P01": {
+   "class": "placement",
+   "first_rejected": null,
+   "A": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "B": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "C": {
+    "outcome": "placement_decline",
+    "answered": true
+   }
+  },
+  "P02": {
+   "class": "placement",
+   "first_rejected": null,
+   "A": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "B": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "C": {
+    "outcome": "placement_decline",
+    "answered": true
+   }
+  },
+  "P03": {
+   "class": "placement",
+   "first_rejected": null,
+   "A": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "B": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "C": {
+    "outcome": "placement_decline",
+    "answered": true
+   }
+  },
+  "P04": {
+   "class": "placement",
+   "first_rejected": null,
+   "A": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "B": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "C": {
+    "outcome": "placement_decline",
+    "answered": true
+   }
+  },
+  "P05": {
+   "class": "placement",
+   "first_rejected": null,
+   "A": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "B": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "C": {
+    "outcome": "placement_decline",
+    "answered": true
+   }
+  },
+  "P06": {
+   "class": "placement",
+   "first_rejected": null,
+   "A": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "B": {
+    "outcome": "placement_decline",
+    "answered": true
+   },
+   "C": {
+    "outcome": "placement_decline",
+    "answered": true
+   }
+  },
+  "V01": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "N01": {
+   "class": "near_miss",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "V02": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "N02": {
+   "class": "near_miss",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "U01": {
+   "class": "unverifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "M01": {
+   "class": "mixed",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "V03": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "N03": {
+   "class": "near_miss",
+   "first_rejected": true,
+   "A": {
+    "outcome": "unvalidated",
+    "answered": true,
+    "unsupported": true,
+    "attribution_error": true,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "B": {
+    "outcome": "stripped",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "C": {
+    "outcome": "closest",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   }
+  },
+  "U02": {
+   "class": "unverifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "M02": {
+   "class": "mixed",
+   "first_rejected": true,
+   "A": {
+    "outcome": "unvalidated",
+    "answered": true,
+    "unsupported": true,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "B": {
+    "outcome": "stripped",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "C": {
+    "outcome": "closest",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   }
+  },
+  "V04": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "N04": {
+   "class": "near_miss",
+   "first_rejected": true,
+   "A": {
+    "outcome": "unvalidated",
+    "answered": true,
+    "unsupported": true,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "B": {
+    "outcome": "stripped",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "C": {
+    "outcome": "closest",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   }
+  },
+  "U03": {
+   "class": "unverifiable",
+   "first_rejected": true,
+   "A": {
+    "outcome": "unvalidated",
+    "answered": true,
+    "unsupported": true,
+    "attribution_error": false,
+    "states_held_figure": false,
+    "useful": false
+   },
+   "B": {
+    "outcome": "recovered",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "C": {
+    "outcome": "recovered",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   }
+  },
+  "M03": {
+   "class": "mixed",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "V05": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "N05": {
+   "class": "near_miss",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "U04": {
+   "class": "unverifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "M04": {
+   "class": "mixed",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "V06": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "N06": {
+   "class": "near_miss",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "U05": {
+   "class": "unverifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "M05": {
+   "class": "mixed",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "V07": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "N07": {
+   "class": "near_miss",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "U06": {
+   "class": "unverifiable",
+   "first_rejected": true,
+   "A": {
+    "outcome": "unvalidated",
+    "answered": true,
+    "unsupported": true,
+    "attribution_error": false,
+    "states_held_figure": false,
+    "useful": false
+   },
+   "B": {
+    "outcome": "recovered",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "C": {
+    "outcome": "recovered",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   }
+  },
+  "M06": {
+   "class": "mixed",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "V08": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "N08": {
+   "class": "near_miss",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "U07": {
+   "class": "unverifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "V09": {
+   "class": "verifiable",
+   "first_rejected": true,
+   "A": {
+    "outcome": "unvalidated",
+    "answered": true,
+    "unsupported": true,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "B": {
+    "outcome": "recovered",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   },
+   "C": {
+    "outcome": "recovered",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true,
+    "useful": false
+   }
+  },
+  "N09": {
+   "class": "near_miss",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "V10": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": false
+   }
+  },
+  "V11": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "V12": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "V13": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "V14": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "V15": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  },
+  "V16": {
+   "class": "verifiable",
+   "first_rejected": false,
+   "A": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "B": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   },
+   "C": {
+    "outcome": "clean",
+    "answered": true,
+    "unsupported": false,
+    "attribution_error": false,
+    "states_held_figure": true
+   }
+  }
+ },
+ "scored_by": "f469f9d0989a",
+ "complete": true
+}
